@@ -5,6 +5,7 @@ import { Bullseye, Spinner } from '@patternfly/react-core';
 import { InvalidObject } from '@redhat-cloud-services/frontend-components/InvalidObject';
 
 import { Provider as DiscoverySourcesProvider } from './migration-wizard/contexts/discovery-sources/Provider';
+import CreateAssessmentFromAgent from './pages/assessment/CreateAssessmentFromAgent';
 import MigrationPage from './pages/MigrationPage';
 import MigrationWizardPage from './pages/MigrationWizardPage';
 import Report from './pages/report/Report';
@@ -21,6 +22,10 @@ const Routing: React.FC = () => {
     {
       path: '/',
       element: MigrationPage,
+    },
+    {
+      path: '/migrate/assessments/new',
+      element: CreateAssessmentFromAgent,
     },
     {
       path: '/migrate/assessments/:id',

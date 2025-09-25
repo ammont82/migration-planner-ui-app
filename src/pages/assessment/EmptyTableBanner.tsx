@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Button,
@@ -30,6 +31,7 @@ type Props = {
 
 const EmptyTableBanner: React.FC<Props> = ({ onOpenModal }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
   const onDropdownToggle = (): void => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -121,7 +123,7 @@ const EmptyTableBanner: React.FC<Props> = ({ onOpenModal }) => {
               key="agent"
               component="button"
               onClick={() => {
-                alert('To be implemented');
+                navigate('migrate/assessments/new');
               }}
             >
               With discovery OVA

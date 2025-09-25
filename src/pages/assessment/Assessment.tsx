@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Assessment as AssessmentModel } from '@migration-planner-ui/api-client/models';
 import {
@@ -48,6 +49,7 @@ const Assessment: React.FC<Props> = ({ assessments, isLoading }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedAssessment, setSelectedAssessment] =
     useState<AssessmentModel | null>(null);
+  const navigate = useNavigate();
 
   const onSort = (
     _event: unknown,
@@ -258,7 +260,7 @@ const Assessment: React.FC<Props> = ({ assessments, isLoading }) => {
                       key="agent"
                       component="button"
                       onClick={() => {
-                        alert('To be implemented');
+                        navigate('migrate/assessments/new');
                       }}
                     >
                       With discovery OVA
