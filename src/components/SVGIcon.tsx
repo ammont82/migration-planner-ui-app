@@ -20,7 +20,7 @@ export const SVGIcon = React.forwardRef<SVGSVGElement, SVGIconProps>(
     });
     const { children, className, title, viewBox = '0 0 1024 1024' } = props;
     const hasTitle = Boolean(title);
-    const classes = className ? `pf-v5-svg ${className}` : 'pf-v5-svg';
+    const classes = className ? `pf-v6-svg ${className}` : 'pf-v6-svg';
 
     useEffect(() => {
       currentId++;

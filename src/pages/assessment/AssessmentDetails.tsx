@@ -13,9 +13,8 @@ import {
   Spinner,
   Stack,
   StackItem,
-  Text,
-  TextContent,
-} from '@patternfly/react-core';
+  Content,
+  } from '@patternfly/react-core';
 import { MonitoringIcon } from '@patternfly/react-icons';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 
@@ -106,9 +105,9 @@ const AssessmentDetails: React.FC = () => {
       >
         <Stack hasGutter>
           <StackItem>
-            <TextContent>
-              <Text component="p">The requested assessment was not found.</Text>
-            </TextContent>
+            <Content>
+              <Content component="p">The requested assessment was not found.</Content>
+            </Content>
           </StackItem>
           <StackItem>
             <Link to="/openshift/migration-assessment/assessments">
@@ -165,9 +164,9 @@ const AssessmentDetails: React.FC = () => {
             marginBottom: '16px',
           }}
         >
-          <TextContent>
-            <Text component="h2">Details</Text>
-          </TextContent>
+          <Content>
+            <Content component="h2">Details</Content>
+          </Content>
         </div>
         <div
           style={{
@@ -177,8 +176,8 @@ const AssessmentDetails: React.FC = () => {
           }}
         >
           <div>
-            <TextContent>
-              <Text component="small">Discover VM status</Text>
+            <Content>
+              <Content component="small">Discover VM status</Content>
               <AgentStatusView
                 status={agent ? agent.status : 'not-connected'}
                 statusInfo={
@@ -195,43 +194,43 @@ const AssessmentDetails: React.FC = () => {
                 updatedAt={source?.updatedAt as unknown as string}
                 disableInteractions
               />
-            </TextContent>
+            </Content>
           </div>
           <div>
-            <TextContent>
-              <Text component="small">Last updated</Text>
-              <Text component="p">{latest.lastUpdated}</Text>
-            </TextContent>
+            <Content>
+              <Content component="small">Last updated</Content>
+              <Content component="p">{latest.lastUpdated}</Content>
+            </Content>
           </div>
           <div>
-            <TextContent>
-              <Text component="small">Owner</Text>
-              <Text component="p">{ownerFullName}</Text>
-            </TextContent>
+            <Content>
+              <Content component="small">Owner</Content>
+              <Content component="p">{ownerFullName}</Content>
+            </Content>
           </div>
           <div>
-            <TextContent>
-              <Text component="small">Hosts</Text>
-              <Text component="p">{latest.hosts}</Text>
-            </TextContent>
+            <Content>
+              <Content component="small">Hosts</Content>
+              <Content component="p">{latest.hosts}</Content>
+            </Content>
           </div>
           <div>
-            <TextContent>
-              <Text component="small">VMs</Text>
-              <Text component="p">{latest.vms}</Text>
-            </TextContent>
+            <Content>
+              <Content component="small">VMs</Content>
+              <Content component="p">{latest.vms}</Content>
+            </Content>
           </div>
           <div>
-            <TextContent>
-              <Text component="small">Networks</Text>
-              <Text component="p">{latest.networks}</Text>
-            </TextContent>
+            <Content>
+              <Content component="small">Networks</Content>
+              <Content component="p">{latest.networks}</Content>
+            </Content>
           </div>
           <div>
-            <TextContent>
-              <Text component="small">Datastores</Text>
-              <Text component="p">{latest.datastores}</Text>
-            </TextContent>
+            <Content>
+              <Content component="small">Datastores</Content>
+              <Content component="p">{latest.datastores}</Content>
+            </Content>
           </div>
         </div>
       </div>
@@ -251,9 +250,9 @@ const AssessmentDetails: React.FC = () => {
             marginBottom: '16px',
           }}
         >
-          <TextContent>
-            <Text component="h2">Snapshots</Text>
-          </TextContent>
+          <Content>
+            <Content component="h2">Snapshots</Content>
+          </Content>
         </div>
         <Table
           aria-label="Assessment snapshots"
@@ -294,11 +293,9 @@ const AssessmentDetails: React.FC = () => {
                     <Link
                       to={`/openshift/migration-assessment/assessments/${assessment.id}/report`}
                     >
-                      <Button variant="plain" aria-label="Open report">
-                        <Icon isInline>
+                      <Button icon={<Icon isInline>
                           <MonitoringIcon style={{ color: '#0066cc' }} />
-                        </Icon>
-                      </Button>
+                        </Icon>} variant="plain" aria-label="Open report" />
                     </Link>
                   </Td>
                 </Tr>

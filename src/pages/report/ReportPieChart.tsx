@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ChartPie } from '@patternfly/react-charts';
-import { Text, TextContent } from '@patternfly/react-core';
+import { Content } from '@patternfly/react-core';
 
 type ChartBarDataEntry = {
   name: string;
@@ -52,9 +52,9 @@ export function ReportPieChart(props: ReportPieChart.Props): React.ReactNode {
   const { title, histogram, legendLabel } = props;
   return (
     <>
-      <TextContent style={{ textAlign: 'center' }}>
-        <Text>{title}</Text>
-      </TextContent>
+      <Content style={{ textAlign: 'center' }}>
+        <Content component="p">{title}</Content>
+      </Content>
       <ChartPie
         name={title.toLowerCase().split(' ').join('-')}
         ariaDesc={title + ' chart'}

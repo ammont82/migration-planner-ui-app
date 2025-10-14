@@ -9,14 +9,13 @@ import type {
 } from '@migration-planner-ui/api-client/models';
 import {
   Badge,
+  Content,
   Flex,
   FlexItem,
   Icon,
   Progress,
   Stack,
   StackItem,
-  Text,
-  TextContent,
   TreeViewDataItem,
 } from '@patternfly/react-core';
 import {
@@ -186,16 +185,14 @@ export const DiscoveryStep: React.FC = () => {
     children: [
       {
         name: (
-          <TextContent>
-            <Text>
+          <Content>
               Warnings{' '}
               <Badge isRead>
                 {vms.migrationWarnings
                   .map(({ count }) => count)
                   .reduce((sum, n) => sum + n, 0)}
               </Badge>
-            </Text>
-          </TextContent>
+            </Content>
         ),
         icon: (
           <Icon style={{ color: globalWarningColor100.value }}>
@@ -219,16 +216,14 @@ export const DiscoveryStep: React.FC = () => {
       vms.notMigratableReasons.length > 0
         ? {
             name: (
-              <TextContent>
-                <Text>
+              <Content>
                   Not migratable reasons{' '}
                   <Badge isRead>
                     {vms.migrationWarnings
                       .map(({ count }) => count)
                       .reduce((sum, n) => sum + n, 0)}
                   </Badge>
-                </Text>
-              </TextContent>
+                </Content>
             ),
             icon: (
               <Icon style={{ color: globalDangerColor100.value }}>
@@ -389,15 +384,13 @@ export const DiscoveryStep: React.FC = () => {
   return (
     <Stack hasGutter id="discovery-report">
       <StackItem>
-        <TextContent>
+        <Content>
           <Flex
             alignItems={{ default: 'alignItemsCenter' }}
             justifyContent={{ default: 'justifyContentSpaceBetween' }}
           >
             <FlexItem>
-              <TextContent>
-                <Text component="h2">Discovery report</Text>
-              </TextContent>
+              <Content component="h2">Discovery report</Content>
             </FlexItem>
             <FlexItem spacer={{ default: 'spacerMd' }}>
               <EnhancedDownloadButton
@@ -415,10 +408,10 @@ export const DiscoveryStep: React.FC = () => {
               />
             </FlexItem>
           </Flex>
-          <Text component="p">
+          <Content component="p">
             Review the information collected during the discovery process
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
       </StackItem>
       <StackItem>
         <Dashboard infra={infra} cpuCores={cpuCores} ramGB={ramGB} vms={vms} />

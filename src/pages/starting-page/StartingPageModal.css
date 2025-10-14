@@ -1,10 +1,10 @@
-.starting-page-modal.pf-v5-c-modal-box {
+.starting-page-modal.pf-v6-c-modal-box {
   width: 70%;
-  max-width: var(--pf-v5-c-modal-box--MaxWidth);
+  max-width: var(--pf-v6-c-modal-box--MaxWidth);
   max-height: min(500px, 80vh);
 }
 
-.starting-page-modal .pf-v5-c-modal-box__header {
+.starting-page-modal .pf-v6-c-modal-box__header {
   background-color: white;
   display: flex;
   justify-content: space-between;
@@ -12,7 +12,7 @@
   gap: 16px;
 }
 
-.starting-page-modal .pf-v5-c-modal-box__footer {
+.starting-page-modal .pf-v6-c-modal-box__footer {
   background-color: white;
   display: flex;
   justify-content: flex-start;

@@ -7,13 +7,10 @@ import {
   EmptyStateActions,
   EmptyStateBody,
   EmptyStateFooter,
-  EmptyStateHeader,
-  EmptyStateIcon,
   EmptyState as PFEmptyState,
   StackItem,
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon, SearchIcon } from '@patternfly/react-icons';
-import { global_danger_color_200 as globalDangerColor200 } from '@patternfly/react-tokens/dist/js/global_danger_color_200';
 
 import { useDiscoverySources } from '../../../../contexts/discovery-sources/Context';
 
@@ -40,12 +37,12 @@ export const EmptyState: React.FC = () => {
   const [isOvaDownloading, setIsOvaDownloading] = useState(false);
 
   let emptyStateNode: React.ReactNode = (
-    <PFEmptyState variant="sm">
-      <EmptyStateHeader
-        titleText="No discovery environment found"
-        headingLevel="h4"
-        icon={<EmptyStateIcon icon={SearchIcon} />}
-      />
+    <PFEmptyState
+      variant="sm"
+      title="No discovery environment found"
+      headingLevel="h4"
+      icon={SearchIcon}
+    >
       <EmptyStateBody>
         Begin by creating a discovery environment. Then download and import the
         OVA file into your VMware environment.
@@ -70,17 +67,12 @@ export const EmptyState: React.FC = () => {
 
   if (discoverySourcesContext.errorLoadingSources) {
     emptyStateNode = (
-      <PFEmptyState variant="sm">
-        <EmptyStateHeader
-          titleText="Something went wrong..."
-          headingLevel="h4"
-          icon={
-            <EmptyStateIcon
-              icon={ExclamationCircleIcon}
-              color={globalDangerColor200.value}
-            />
-          }
-        />
+      <PFEmptyState
+        variant="sm"
+        titleText="Something went wrong..."
+        headingLevel="h4"
+        icon={ExclamationCircleIcon}
+      >
         <EmptyStateBody>
           An error occurred while attempting to detect existing discovery
           sources

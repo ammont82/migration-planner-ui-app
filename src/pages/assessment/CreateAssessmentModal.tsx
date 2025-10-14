@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 
 import {
-  Button,
-  FileUpload,
-  Form,
-  FormGroup,
-  FormSelect,
-  FormSelectOption,
-  Modal,
-  ModalVariant,
-  TextInput,
+	Button,
+	FileUpload,
+	Form,
+	FormGroup,
+	FormSelect,
+	FormSelectOption,
+	TextInput
 } from '@patternfly/react-core';
+import {
+	Modal,
+	ModalVariant
+} from '@patternfly/react-core/deprecated';
 
 export type AssessmentMode = 'inventory' | 'rvtools' | 'agent';
 

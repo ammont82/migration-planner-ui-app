@@ -6,6 +6,7 @@ import {
   Checkbox,
   ClipboardCopy,
   clipboardCopyFunc,
+  Content,
   Form,
   FormGroup,
   FormHelperText,
@@ -13,7 +14,6 @@ import {
   HelperTextItem,
   Radio,
   TextArea,
-  TextContent,
   TextInput,
 } from '@patternfly/react-core';
 import {
@@ -21,7 +21,7 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
-} from '@patternfly/react-core/next';
+} from '@patternfly/react-core';
 
 import { useDiscoverySources } from '../../../../contexts/discovery-sources/Context';
 
@@ -686,7 +686,7 @@ export const DiscoverySourceSetupModal: React.FC<
             </>
           )}
           {showUrl && (
-            <TextContent>
+            <Content>
               <b>Ova Download URL</b>
               <ClipboardCopy
                 isReadOnly
@@ -694,7 +694,7 @@ export const DiscoverySourceSetupModal: React.FC<
               >
                 {generatedUrl}
               </ClipboardCopy>
-            </TextContent>
+            </Content>
           )}
         </Form>
         {proxyGroupError && (

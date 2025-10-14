@@ -2,27 +2,26 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { Source } from '@migration-planner-ui/api-client/models';
 import {
-  Alert,
-  Button,
-  Checkbox,
-  ClipboardCopy,
-  clipboardCopyFunc,
-  Form,
-  FormGroup,
-  FormHelperText,
-  HelperText,
-  HelperTextItem,
-  Radio,
-  TextArea,
-  TextContent,
-  TextInput,
+	Alert,
+	Button,
+	Checkbox,
+	ClipboardCopy,
+	clipboardCopyFunc,
+	Form,
+	FormGroup,
+	FormHelperText,
+	HelperText,
+	HelperTextItem,
+	Radio,
+	TextArea,
+	Content,
+	TextInput,
+	Modal /* data-codemods */,
+	ModalBody /* data-codemods */,
+	ModalFooter /* data-codemods */,
+	ModalHeader /* data-codemods */
 } from '@patternfly/react-core';
-import {
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-} from '@patternfly/react-core/next';
+
 
 import { useDiscoverySources } from '../../../../migration-wizard/contexts/discovery-sources/Context';
 
@@ -818,7 +817,7 @@ export const DiscoverySourceSetupModal: React.FC<
             </>
           )}
           {showUrl && (
-            <TextContent>
+            <Content>
               <b>Ova Download URL</b>
               <ClipboardCopy
                 isReadOnly
@@ -826,7 +825,7 @@ export const DiscoverySourceSetupModal: React.FC<
               >
                 {generatedUrl}
               </ClipboardCopy>
-            </TextContent>
+            </Content>
           )}
         </Form>
         {proxyGroupError && (

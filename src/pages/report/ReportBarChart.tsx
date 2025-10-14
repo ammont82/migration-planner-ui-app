@@ -1,13 +1,13 @@
 import React from 'react';
 
 import {
-  Chart,
-  ChartAxis,
-  ChartBar,
-  ChartGroup,
-  ChartVoronoiContainer,
+	Chart,
+	ChartAxis,
+	ChartBar,
+	ChartGroup,
+	ChartVoronoiContainer
 } from '@patternfly/react-charts';
-import { Text, TextContent } from '@patternfly/react-core';
+import { Content } from '@patternfly/react-core';
 
 type ChartBarDataEntry = {
   name: string;
@@ -57,9 +57,9 @@ export function ReportBarChart(props: ReportBarChart.Props): React.ReactNode {
 
   return (
     <>
-      <TextContent style={{ textAlign: 'center' }}>
-        <Text>{title}</Text>
-      </TextContent>
+      <Content style={{ textAlign: 'center' }}>
+        <Content component="p">{title}</Content>
+      </Content>
       <Chart
         name={title.toLowerCase().split(' ').join('-')}
         ariaDesc={title + ' chart'}

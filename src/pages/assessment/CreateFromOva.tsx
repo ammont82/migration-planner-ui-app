@@ -6,6 +6,7 @@ import {
   AlertActionLink,
   Button,
   Checkbox,
+  Content,
   Form,
   FormGroup,
   FormSelect,
@@ -15,8 +16,6 @@ import {
   InputGroup,
   InputGroupItem,
   Spinner,
-  Text,
-  TextContent,
   TextInput,
 } from '@patternfly/react-core';
 
@@ -231,11 +230,11 @@ const CreateFromOva: React.FC = () => {
             </HelperText>
           </FormGroup>
 
-          <TextContent style={{ marginTop: '16px' }}>
-            <Text component="p" style={{ fontWeight: 600 }}>
+          <Content style={{ marginTop: '16px' }}>
+            <Content component="p" style={{ fontWeight: 600 }}>
               follow these steps to connect your environment and create the
               assessment report
-            </Text>
+            </Content>
             <ol style={{ paddingLeft: '1.2rem', lineHeight: 1.6 }}>
               <li>
                 To create a migration assessment for an existing environment,
@@ -256,7 +255,7 @@ const CreateFromOva: React.FC = () => {
                 and view the discovery report
               </li>
             </ol>
-          </TextContent>
+          </Content>
 
           <div style={{ marginTop: '16px' }}>
             <Checkbox
@@ -338,12 +337,12 @@ const CreateFromOva: React.FC = () => {
                   ) : undefined
                 }
               >
-                <TextContent>
-                  <Text>
+                <Content>
+                  <Content component="p">
                     Click the link below to connect the Discovery Source to your
                     VMware environment.
-                  </Text>
-                </TextContent>
+                  </Content>
+                </Content>
               </Alert>
             </div>
           )}

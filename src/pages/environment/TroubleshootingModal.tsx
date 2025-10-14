@@ -4,7 +4,12 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-import { Modal, Spinner } from '@patternfly/react-core';
+import {
+	Spinner
+} from '@patternfly/react-core';
+import {
+	Modal
+} from '@patternfly/react-core/deprecated';
 
 import 'github-markdown-css/github-markdown.css';
 

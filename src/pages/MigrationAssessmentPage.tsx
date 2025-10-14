@@ -9,14 +9,13 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Content,
   Flex,
   FlexItem,
   Icon,
   Spinner,
   Stack,
   StackItem,
-  Text,
-  TextContent,
   Tooltip,
 } from '@patternfly/react-core';
 import {
@@ -24,7 +23,7 @@ import {
   MigrationIcon,
   QuestionCircleIcon,
 } from '@patternfly/react-icons';
-import { global_active_color_300 as globalActiveColor300 } from '@patternfly/react-tokens/dist/js/global_active_color_300';
+import { t_global_icon_color_300 as globalActiveColor300 } from '@patternfly/react-tokens/dist/js/t_global_icon_color_300';
 
 import { AppPage } from '../components/AppPage';
 import { CustomEnterpriseIcon } from '../components/CustomEnterpriseIcon';
@@ -36,19 +35,19 @@ import AssessmentPage from './assessment/Assessment';
 const cards: React.ReactElement[] = [
   <Card isFullHeight isPlain key="card-1">
     <CardHeader>
-      <TextContent style={{ textAlign: 'center' }}>
+      <Content style={{ textAlign: 'center' }}>
         <Icon size="xl" style={{ color: globalActiveColor300.var }}>
           <CustomEnterpriseIcon />
         </Icon>
-        <Text component="h2">Discover your VMware environment</Text>
-      </TextContent>
+        <Content component="h2">Discover your VMware environment</Content>
+      </Content>
     </CardHeader>
     <CardBody>
-      <TextContent style={{ textAlign: 'center' }}>
-        <Text>
+      <Content style={{ textAlign: 'center' }}>
+        <Content component="p">
           Run the discovery process and create a full evaluation report
           including recommendations for your migration journey.
-        </Text>
+        </Content>
         <div
           style={{
             display: 'inline-flex',
@@ -79,44 +78,44 @@ const cards: React.ReactElement[] = [
             </Icon>
           </Tooltip>
         </div>
-      </TextContent>
+      </Content>
     </CardBody>
   </Card>,
 
   <Card isFullHeight isPlain key="card-2">
     <CardHeader>
-      <TextContent style={{ textAlign: 'center' }}>
+      <Content style={{ textAlign: 'center' }}>
         <Icon size="xl" style={{ color: globalActiveColor300.var }}>
           <ClusterIcon />
         </Icon>
-        <Text component="h2">Select a target cluster</Text>
-      </TextContent>
+        <Content component="h2">Select a target cluster</Content>
+      </Content>
     </CardHeader>
     <CardBody>
-      <TextContent style={{ textAlign: 'center' }}>
-        <Text>
+      <Content style={{ textAlign: 'center' }}>
+        <Content component="p">
           Select your target OpenShift Cluster to fit your migration goals.
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
     </CardBody>
   </Card>,
 
   <Card isFullHeight isPlain key="card-3">
     <CardHeader>
-      <TextContent style={{ textAlign: 'center' }}>
+      <Content style={{ textAlign: 'center' }}>
         <Icon size="xl" style={{ color: globalActiveColor300.var }}>
           <MigrationIcon />
         </Icon>
-        <Text component="h2">Create a migration plan</Text>
-      </TextContent>
+        <Content component="h2">Create a migration plan</Content>
+      </Content>
     </CardHeader>
     <CardBody>
-      <TextContent style={{ textAlign: 'center' }}>
-        <Text>
+      <Content style={{ textAlign: 'center' }}>
+        <Content component="p">
           Select your VMs, create a network and storage mapping and schedule
           your migration timeline
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
     </CardBody>
   </Card>,
 ];

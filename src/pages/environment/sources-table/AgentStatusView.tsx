@@ -4,23 +4,22 @@ import { Link } from 'react-router-dom';
 import type { Agent } from '@migration-planner-ui/api-client/models';
 import {
   Button,
+  Content,
   Icon,
   Popover,
   Spinner,
   Split,
   SplitItem,
-  Text,
-  TextContent,
-} from '@patternfly/react-core';
+  } from '@patternfly/react-core';
 import {
   CheckCircleIcon,
   DisconnectedIcon,
   ExclamationCircleIcon,
   InfoCircleIcon,
 } from '@patternfly/react-icons';
-import { global_danger_color_200 as globalDangerColor200 } from '@patternfly/react-tokens/dist/js/global_danger_color_200';
-import { global_info_color_100 as globalInfoColor100 } from '@patternfly/react-tokens/dist/js/global_info_color_100';
-import { global_success_color_100 as globalSuccessColor100 } from '@patternfly/react-tokens/dist/js/global_success_color_100';
+import { t_global_color_status_success_default as globalSuccessColor100 } from '@patternfly/react-tokens/dist/js/t_global_color_status_success_default';
+import { t_global_icon_color_status_danger_default as globalDangerColor200 } from '@patternfly/react-tokens/dist/js/t_global_icon_color_status_danger_default';
+import { t_global_icon_color_status_info_default as globalInfoColor100 } from '@patternfly/react-tokens/dist/js/t_global_icon_color_status_info_default';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace AgentStatusView {
@@ -39,12 +38,12 @@ const StatusInfoWaitingForCredentials: React.FC<{
 }> = ({ credentialUrl }) => {
   return (
     <>
-      <TextContent>
-        <Text>
+      <Content>
+        <Content component="p">
           Click the link below to connect the Discovery Environment to your
           VMware environment.
-        </Text>
-      </TextContent>
+        </Content>
+      </Content>
       {credentialUrl && (
         <Link to={credentialUrl} target="_blank">
           {credentialUrl}
@@ -150,13 +149,13 @@ export const AgentStatusView: React.FC<AgentStatusView.Props> = (props) => {
                   credentialUrl={credentialUrl}
                 />
               ) : uploadedManually && !statusInfo ? (
-                <TextContent>
-                  <Text>{`Last updated via inventory file on ${updatedAt ? new Date(updatedAt).toLocaleString() : '-'}`}</Text>
-                </TextContent>
+                <Content>
+                  <Content component="p">{`Last updated via inventory file on ${updatedAt ? new Date(updatedAt).toLocaleString() : '-'}`}</Content>
+                </Content>
               ) : (
-                <TextContent>
-                  <Text>{statusInfo}</Text>
-                </TextContent>
+                <Content>
+                  <Content component="p">{statusInfo}</Content>
+                </Content>
               )
             }
           >

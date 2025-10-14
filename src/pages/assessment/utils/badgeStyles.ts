@@ -22,7 +22,7 @@ export function getSourceTypeLabelProps(sourceType: string): {
         letter: 'I',
         style: {
           ...baseStyle,
-          '--pf-v5-c-badge--m-unread--BackgroundColor': '#06c',
+          '--pf-v6-c-badge--m-unread--BackgroundColor': '#06c',
         } as React.CSSProperties,
       };
     case 'rvtools':
@@ -30,7 +30,7 @@ export function getSourceTypeLabelProps(sourceType: string): {
         letter: 'R',
         style: {
           ...baseStyle,
-          '--pf-v5-c-badge--m-unread--BackgroundColor': '#3e8635',
+          '--pf-v6-c-badge--m-unread--BackgroundColor': '#3e8635',
         } as React.CSSProperties,
       };
     case 'agent':
@@ -38,7 +38,7 @@ export function getSourceTypeLabelProps(sourceType: string): {
         letter: 'A',
         style: {
           ...baseStyle,
-          '--pf-v5-c-badge--m-unread--BackgroundColor': '#ec7a08',
+          '--pf-v6-c-badge--m-unread--BackgroundColor': '#ec7a08',
         } as React.CSSProperties,
       };
     default:
@@ -46,7 +46,7 @@ export function getSourceTypeLabelProps(sourceType: string): {
         letter: '?',
         style: {
           ...baseStyle,
-          '--pf-v5-c-badge--m-unread--BackgroundColor': '#6a6e73',
+          '--pf-v6-c-badge--m-unread--BackgroundColor': '#6a6e73',
         } as React.CSSProperties,
       };
   }

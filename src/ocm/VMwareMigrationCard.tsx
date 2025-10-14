@@ -13,8 +13,7 @@ import {
   Label,
   Split,
   SplitItem,
-  Text,
-  TextContent,
+  Content,
   Title,
 } from '@patternfly/react-core';
 
@@ -42,13 +41,13 @@ export const VMwareMigrationCard: React.FC = () => {
         <Title headingLevel="h2">VMware to OpenShift migration</Title>
       </CardBody>
       <CardBody>
-        <TextContent>
-          <Text>
+        <Content>
+          <Content component="p">
             Start your migration journey to OpenShift Virtualization. We will
             create a migration assessment report and help you create a migration
             plan.
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
       </CardBody>
       <CardFooter>
         <Flex>

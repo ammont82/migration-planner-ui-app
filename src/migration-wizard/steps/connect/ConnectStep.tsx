@@ -5,6 +5,7 @@ import {
   Alert,
   AlertActionLink,
   Button,
+  Content,
   Icon,
   List,
   ListItem,
@@ -14,8 +15,6 @@ import {
   PanelMain,
   Stack,
   StackItem,
-  Text,
-  TextContent,
 } from '@patternfly/react-core';
 import { ClusterIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import { chart_color_blue_300 as blueColor } from '@patternfly/react-tokens/dist/js/chart_color_blue_300';
@@ -93,55 +92,49 @@ export const ConnectStep: React.FC = () => {
     <>
       <Stack hasGutter>
         <StackItem>
-          <TextContent>
-            <Text component="h2">Connect your VMware environment</Text>
-          </TextContent>
+          <Content component="h2">Connect your VMware environment</Content>
         </StackItem>
         <StackItem>
-          <TextContent style={{ paddingBlock: '1rem' }}>
-            <Text component="h4">
-              Follow these steps to connect your environment and start the
-              discovery process
-            </Text>
-            <List
-              component="ol"
-              type={OrderType.number}
-              style={{ marginInlineStart: 0 }}
-            >
-              <ListItem>
-                To add a new environment download and import a discovery OVA
-                file to your VMware environment.
-              </ListItem>
-              <ListItem>
-                A link will appear below once the VM is running. Use this link
-                to enter credentials and connect your environment.
-                <Button
-                  variant="link"
-                  isInline
-                  onClick={() => setIsTroubleshootingOpen(true)}
-                >
-                  (VM not showing up?)
-                </Button>{' '}
-              </ListItem>
-              <ListItem>
-                When the connection is established, you will be able to proceed
-                and see the discovery report.
-              </ListItem>
-            </List>
-          </TextContent>
+          <Content style={{ paddingBlock: '1rem' }} component="h4">
+            Follow these steps to connect your environment and start the
+            discovery process
+          </Content>
+          <List
+            component="ol"
+            type={OrderType.number}
+            style={{ marginInlineStart: 0 }}
+          >
+            <ListItem>
+              To add a new environment download and import a discovery OVA file
+              to your VMware environment.
+            </ListItem>
+            <ListItem>
+              A link will appear below once the VM is running. Use this link to
+              enter credentials and connect your environment.
+              <Button
+                variant="link"
+                isInline
+                onClick={() => setIsTroubleshootingOpen(true)}
+              >
+                (VM not showing up?)
+              </Button>{' '}
+            </ListItem>
+            <ListItem>
+              When the connection is established, you will be able to proceed
+              and see the discovery report.
+            </ListItem>
+          </List>
         </StackItem>
         <StackItem>
           <Panel variant="bordered">
             <PanelMain>
               <PanelHeader style={{ paddingBlockEnd: 0 }}>
-                <TextContent>
-                  <Text component="h3">
-                    <Icon isInline style={{ marginRight: '1rem' }}>
-                      <ClusterIcon />
-                    </Icon>
-                    Environment
-                  </Text>
-                </TextContent>
+                <Content component="h3">
+                  <Icon isInline style={{ marginRight: '1rem' }}>
+                    <ClusterIcon />
+                  </Icon>
+                  Environment
+                </Content>
               </PanelHeader>
               <SourcesTable
                 onUploadResult={(message, isError) => {
@@ -203,12 +196,10 @@ export const ConnectStep: React.FC = () => {
                   </AlertActionLink>
                 }
               >
-                <TextContent>
-                  <Text>
-                    Click the link below to connect the Discovery Source to your
-                    VMware environment.
-                  </Text>
-                </TextContent>
+                <Content>
+                  Click the link below to connect the Discovery Source to your
+                  VMware environment.
+                </Content>
               </Alert>
             </StackItem>
           )}
@@ -222,12 +213,10 @@ export const ConnectStep: React.FC = () => {
                 variant="custom"
                 title="Environment not connected"
               >
-                <TextContent>
-                  <Text>
-                    The selected environment is not connected, if you have a
-                    discovery file click the link below to upload it.
-                  </Text>
-                </TextContent>
+                <Content>
+                  The selected environment is not connected, if you have a
+                  discovery file click the link below to upload it.
+                </Content>
                 <UploadInventoryAction
                   discoverySourcesContext={discoverySourcesContext}
                   sourceId={sourceSelected?.id ?? ''}

@@ -29,13 +29,13 @@ const ProxyInputFields = ({
       <GridItem span={12}>
         <FormGroup
           label="HTTP proxy URL"
-          labelIcon={
+          labelHelp={
             <Popover bodyContent="The HTTP proxy URL that agents should use to access the discovery service.">
               <button
                 type="button"
                 aria-label="More info"
                 onClick={(e) => e.preventDefault()}
-                className="pf-v5-c-form__group-label-help"
+                className="pf-v6-c-form__group-label-help"
               >
                 <HelpIcon />
               </button>
@@ -60,13 +60,13 @@ const ProxyInputFields = ({
       <GridItem span={12}>
         <FormGroup
           label="HTTPS proxy URL"
-          labelIcon={
+          labelHelp={
             <Popover bodyContent="Specify the HTTPS proxy that agents should use to access the discovery service. If you don't provide a value, your HTTP proxy URL will be used by default for both HTTP and HTTPS connections.">
               <button
                 type="button"
                 aria-label="More info"
                 onClick={(e) => e.preventDefault()}
-                className="pf-v5-c-form__group-label-help"
+                className="pf-v6-c-form__group-label-help"
               >
                 <HelpIcon />
               </button>
@@ -91,13 +91,13 @@ const ProxyInputFields = ({
       <GridItem span={12}>
         <FormGroup
           label="No proxy domains"
-          labelIcon={
+          labelHelp={
             <Popover bodyContent="Exclude destination domain names, IP addresses, or other network CIDRs from proxying by adding them to this comma-separated list.">
               <button
                 type="button"
                 aria-label="More info"
                 onClick={(e) => e.preventDefault()}
-                className="pf-v5-c-form__group-label-help"
+                className="pf-v6-c-form__group-label-help"
               >
                 <HelpIcon />
               </button>

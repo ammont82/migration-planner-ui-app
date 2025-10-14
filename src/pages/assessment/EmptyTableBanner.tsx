@@ -6,6 +6,7 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Content,
   Dropdown,
   DropdownItem,
   DropdownList,
@@ -14,12 +15,10 @@ import {
   Icon,
   MenuToggle,
   MenuToggleElement,
-  Text,
-  TextContent,
   Tooltip,
 } from '@patternfly/react-core';
 import { QuestionCircleIcon } from '@patternfly/react-icons';
-import { global_active_color_300 as globalActiveColor300 } from '@patternfly/react-tokens/dist/js/global_active_color_300';
+import { t_global_icon_color_300 as globalActiveColor300 } from '@patternfly/react-tokens/dist/js/t_global_icon_color_300';
 
 import { CustomEnterpriseIcon } from '../../components/CustomEnterpriseIcon';
 
@@ -50,19 +49,19 @@ const EmptyTableBanner: React.FC<Props> = ({ onOpenModal }) => {
       <FlexItem>
         <Card isFullHeight isPlain key="card-1">
           <CardHeader>
-            <TextContent style={{ textAlign: 'center' }}>
+            <Content style={{ textAlign: 'center' }}>
               <Icon size="xl" style={{ color: globalActiveColor300.var }}>
                 <CustomEnterpriseIcon />
               </Icon>
-              <Text component="h2">Assess your VMware environment</Text>
-            </TextContent>
+              <Content component="h2">Assess your VMware environment</Content>
+            </Content>
           </CardHeader>
           <CardBody style={{ margin: '0', paddingBottom: '0' }}>
-            <TextContent style={{ textAlign: 'center' }}>
-              <Text>
+            <Content style={{ textAlign: 'center' }}>
+              <Content component="p">
                 Run the discovery process or upload an inventory file to create
                 a full migration assessment report.
-              </Text>
+              </Content>
               <div
                 style={{
                   display: 'inline-flex',
@@ -84,7 +83,7 @@ const EmptyTableBanner: React.FC<Props> = ({ onOpenModal }) => {
                   </Icon>
                 </Tooltip>
               </div>
-            </TextContent>
+            </Content>
           </CardBody>
         </Card>
       </FlexItem>

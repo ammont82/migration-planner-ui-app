@@ -430,9 +430,8 @@ export const AssessmentsTable: React.FC<Props> = ({
                         aria-label="Actions"
                         variant="plain"
                         onClick={() => toggleDropdown(row.id)}
-                      >
-                        <EllipsisVIcon />
-                      </MenuToggle>
+                        icon={<EllipsisVIcon />}
+                      ></MenuToggle>
                     )}
                   >
                     <DropdownList>

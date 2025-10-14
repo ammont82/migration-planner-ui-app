@@ -1,26 +1,24 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
 import {
-  Alert,
-  AlertActionLink,
-  Button,
-  Chip,
-  ChipGroup,
-  Dropdown,
-  DropdownItem,
-  DropdownList,
-  InputGroup,
-  InputGroupItem,
-  MenuToggle,
-  MenuToggleElement,
-  SearchInput,
-  StackItem,
-  Text,
-  TextContent,
-  Toolbar,
-  ToolbarContent,
-  ToolbarItem,
+	Label, LabelGroup, Alert,
+	AlertActionLink,
+	Button,
+	Dropdown,
+	DropdownItem,
+	DropdownList,
+	InputGroup,
+	InputGroupItem,
+	MenuToggle,
+	MenuToggleElement,
+	SearchInput,
+	StackItem,
+	Content,
+	Toolbar,
+	ToolbarContent,
+	ToolbarItem
 } from '@patternfly/react-core';
+
 import { FilterIcon, PlusCircleIcon, TimesIcon } from '@patternfly/react-icons';
 
 import { useDiscoverySources } from '../../migration-wizard/contexts/discovery-sources/Context';
@@ -222,7 +220,7 @@ export const Environment: React.FC = () => {
                 Filters
               </span>
 
-              <ChipGroup>
+              <LabelGroup>
                 {(() => {
                   const MAX_STATUS_CHIPS = 1;
                   const visible = selectedStatuses.slice(0, MAX_STATUS_CHIPS);
@@ -233,32 +231,30 @@ export const Environment: React.FC = () => {
                   return (
                     <>
                       {visible.map((key) => (
-                        <Chip
+                        <Label variant="outline"
                           key={`chip-status-${key}`}
-                          onClick={() => toggleStatus(key)}
+                          onClose={() => toggleStatus(key)}
                           closeBtnAriaLabel={`Remove status ${key}`}
                         >
                           {`status=${labelMap.get(key) ?? key}`}
-                        </Chip>
+                        </Label>
                       ))}
                       {overflow > 0 && (
-                        <Chip
-                          isReadOnly
+                        <Label variant="outline"
+                          
                           key="status-overflow"
-                        >{`${overflow} more`}</Chip>
+                        >{`${overflow} more`}</Label>
                       )}
                     </>
                   );
                 })()}
-              </ChipGroup>
+              </LabelGroup>
 
-              <Button
+              <Button icon={<TimesIcon />}
                 variant="plain"
                 aria-label="Clear all filters"
                 onClick={() => clearStatuses()}
-              >
-                <TimesIcon />
-              </Button>
+               />
             </div>
           </div>
         )}
@@ -317,12 +313,12 @@ export const Environment: React.FC = () => {
                 </AlertActionLink>
               }
             >
-              <TextContent>
-                <Text>
+              <Content>
+                <Content component="p">
                   Click the link below to connect the Discovery Source to your
                   VMware environment.
-                </Text>
-              </TextContent>
+                </Content>
+              </Content>
             </Alert>
           </StackItem>
         )}

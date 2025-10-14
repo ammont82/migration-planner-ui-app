@@ -11,15 +11,14 @@ import {
 import {
   Bullseye,
   Button,
+  Content,
   Icon,
   Spinner,
   Stack,
   StackItem,
-  Text,
-  TextContent,
-} from '@patternfly/react-core';
+  } from '@patternfly/react-core';
 import { CheckCircleIcon } from '@patternfly/react-icons';
-import { global_success_color_100 as globalSuccessColor100 } from '@patternfly/react-tokens/dist/js/global_success_color_100';
+import { t_global_color_status_success_default as globalSuccessColor100 } from '@patternfly/react-tokens/dist/js/t_global_color_status_success_default';
 
 import { AppPage } from '../../components/AppPage';
 import { useDiscoverySources } from '../../migration-wizard/contexts/discovery-sources/Context';
@@ -86,9 +85,9 @@ const Inner: React.FC = () => {
       >
         <Stack hasGutter>
           <StackItem>
-            <TextContent>
-              <Text component="p">The requested assessment was not found.</Text>
-            </TextContent>
+            <Content>
+              <Content component="p">The requested assessment was not found.</Content>
+            </Content>
           </StackItem>
           <StackItem>
             <Link to="/openshift/migration-assessment/assessments">
@@ -191,11 +190,11 @@ const Inner: React.FC = () => {
         <Dashboard infra={infra} cpuCores={cpuCores} ramGB={ramGB} vms={vms} />
       ) : (
         <Bullseye>
-          <TextContent>
-            <Text component="p">
+          <Content>
+            <Content component="p">
               This assessment does not have report data yet.
-            </Text>
-          </TextContent>
+            </Content>
+          </Content>
         </Bullseye>
       )}
     </AppPage>

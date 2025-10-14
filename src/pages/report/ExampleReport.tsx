@@ -9,7 +9,7 @@ import {
 } from '@migration-planner-ui/api-client/models';
 import { Icon } from '@patternfly/react-core';
 import { CheckCircleIcon } from '@patternfly/react-icons';
-import { global_success_color_100 as globalSuccessColor100 } from '@patternfly/react-tokens/dist/js/global_success_color_100';
+import { t_global_color_status_success_default as globalSuccessColor100 } from '@patternfly/react-tokens/dist/js/t_global_color_status_success_default';
 
 import { AppPage } from '../../components/AppPage';
 

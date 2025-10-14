@@ -1,25 +1,20 @@
 import React from 'react';
 
 import {
+  Content,
   Radio,
   Stack,
   StackItem,
-  Text,
-  TextContent,
 } from '@patternfly/react-core';
 
 export const PrepareMigrationStep: React.FC = () => {
   return (
     <Stack hasGutter>
       <StackItem>
-        <TextContent>
-          <Text component="h2">Prepare for Migration</Text>
-        </TextContent>
+        <Content component="h2">Prepare for Migration</Content>
       </StackItem>
       <StackItem>
-        <TextContent>
-          <Text component="h3">Migration goal</Text>
-        </TextContent>
+        <Content component="h3">Migration goal</Content>
       </StackItem>
       <StackItem>
         <Radio
@@ -49,9 +44,7 @@ export const PrepareMigrationStep: React.FC = () => {
         />
       </StackItem>
       <StackItem>
-        <TextContent style={{ paddingBlock: '1rem' }}>
-          <Text component="h3">Target cluster</Text>
-        </TextContent>
+        <Content component="h3" style={{ paddingBlock: '1rem' }}>Target cluster</Content>        
       </StackItem>
       <StackItem>
         <Radio

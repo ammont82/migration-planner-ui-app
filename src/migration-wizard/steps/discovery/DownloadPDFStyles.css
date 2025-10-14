@@ -1,4 +1,4 @@
-#hidden-container .pf-v5-c-card {
+#hidden-container .pf-v6-c-card {
   background-color: white !important;
   box-shadow: none !important;
   color: black !important;
@@ -10,10 +10,10 @@
   padding: 0 !important;
 }
 
-.pf-v5-c-menu__list-item {
+.pf-v6-c-menu__list-item {
   background-color: #ffffff !important;
 }
 
-.pf-v5-c-menu__list-item:hover {
+.pf-v6-c-menu__list-item:hover {
   background-color: #f0f0f0 !important;
 }

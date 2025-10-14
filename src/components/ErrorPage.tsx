@@ -1,50 +1,22 @@
 import React from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
-import { css, keyframes } from '@emotion/css';
+import { keyframes } from '@emotion/css';
 import {
   Backdrop,
   Bullseye,
   Button,
   ButtonProps,
   Card,
+  Content,
   EmptyState,
   EmptyStateActions,
   EmptyStateBody,
   EmptyStateFooter,
-  EmptyStateIcon,
-  Text,
-  TextContent,
 } from '@patternfly/react-core';
-import { ErrorCircleOIcon, WarningTriangleIcon } from '@patternfly/react-icons';
-import { global_danger_color_100 as globalDangerColor100 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
-import { global_warning_color_100 as globalWarningColor100 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
+import { ExclamationCircleIcon, ExclamationTriangleIcon } from '@patternfly/react-icons';
 
-const bounce = keyframes`
-  from, 20%, 53%, 80%, to {
-    transform: translate3d(0,0,0);
-  }
-
-  40%, 43% {
-    transform: translate3d(0, -30px, 0);
-  }
-
-  70% {
-    transform: translate3d(0, -15px, 0);
-  }
-
-  90% {
-    transform: translate3d(0,-4px,0);
-  }
-`;
-
-const classes = {
-  icon: css({
-    fontSize: '6rem',
-    animation: `${bounce} 1s ease infinite`,
-    transformOrigin: 'center bottom',
-  }),
-} as const;
+const _bounce = keyframes``; // placeholder to keep emotion import references if needed later
 
 type Props = {
   code?: string;
@@ -72,27 +44,19 @@ const ErrorPage: React.FC<Props> = (props) => {
       <Bullseye>
         <Card
           style={{ width: '36rem', height: '38rem', justifyContent: 'center' }}
-          isFlat
-          isRounded
         >
-          <EmptyState>
+          <EmptyState
+            headingLevel="h1"
+            titleText={code}
+            icon={parseInt(code) < 500 ? ExclamationTriangleIcon : ExclamationCircleIcon}
+          >
             <EmptyStateBody>
-              <EmptyStateIcon
-                className={classes.icon}
-                icon={
-                  parseInt(code) < 500 ? WarningTriangleIcon : ErrorCircleOIcon
-                }
-                color={
-                  parseInt(code) < 500
-                    ? globalWarningColor100.value
-                    : globalDangerColor100.value
-                }
-              />
-              <TextContent>
-                <Text component="h1">{code}</Text>
-                <Text component="h2">{message}</Text>
-                {additionalDetails ?? <Text>{additionalDetails}</Text>}
-              </TextContent>
+              <Content>
+                <Content component="h2">{message}</Content>
+                {additionalDetails ?? (
+                  <Content component="p">{additionalDetails}</Content>
+                )}
+              </Content>
             </EmptyStateBody>
 
             {actions.length > 0 && (

@@ -1,12 +1,14 @@
 import React from 'react';
 
-import { Button, Flex } from '@patternfly/react-core';
 import {
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-} from '@patternfly/react-core/next';
+	Button,
+	Flex,
+	Modal /* data-codemods */,
+	ModalBody /* data-codemods */,
+	ModalFooter /* data-codemods */,
+	ModalHeader /* data-codemods */
+} from '@patternfly/react-core';
+
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace ConfirmationModal {

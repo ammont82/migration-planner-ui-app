@@ -3,8 +3,8 @@ import React, { useMemo } from 'react';
 import {
   Flex,
   FlexItem,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   Tooltip,
 } from '@patternfly/react-core';
 import { Table, Tbody, Td, Tr } from '@patternfly/react-table';
@@ -91,7 +91,7 @@ const MigrationChart: React.FC<MigrationChartProps> = ({
                   />
                 </FlexItem>
                 <FlexItem>
-                  <Text component={TextVariants.small}>{key}</Text>
+                  <Content component={ContentVariants.small}>{key}</Content>
                 </FlexItem>
               </Flex>
             </FlexItem>
@@ -111,8 +111,8 @@ const MigrationChart: React.FC<MigrationChartProps> = ({
                   <Tr key={index}>
                     <Td width={dataLength} style={{ paddingLeft: '0px' }}>
                       <Tooltip content={<div>{item.name}</div>} exitDelay={0}>
-                        <Text
-                          component={TextVariants.p}
+                        <Content
+                          component={ContentVariants.p}
                           style={{
                             fontSize: 'clamp(0.4rem, 0.7vw, 1.1rem)',
                             overflow: 'hidden',
@@ -125,7 +125,7 @@ const MigrationChart: React.FC<MigrationChartProps> = ({
                           }}
                         >
                           {item.name}
-                        </Text>
+                        </Content>
                       </Tooltip>
                     </Td>
                     <Td>
@@ -156,11 +156,11 @@ const MigrationChart: React.FC<MigrationChartProps> = ({
                       width={10}
                       style={{ paddingRight: '0px', textAlign: 'center' }}
                     >
-                      <Text
+                      <Content component="p"
                         style={{ fontSize: 'clamp(0.4rem, 0.7vw, 1.1rem)' }}
                       >
                         {item.count}
-                      </Text>
+                      </Content>
                     </Td>
                   </Tr>
                 ))}

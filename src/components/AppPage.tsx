@@ -8,9 +8,8 @@ import {
   Page,
   PageBreadcrumb,
   PageSection,
-  Text,
-  TextContent,
-} from '@patternfly/react-core';
+  Content,
+  } from '@patternfly/react-core';
 import {
   PageHeader,
   PageHeaderTitle,
@@ -34,7 +33,7 @@ export const AppPage: React.FC<React.PropsWithChildren<AppPage.Props>> = (
   return (
     <Page style={{ height: '100%' }}>
       <div id="base-page__header">
-        <PageBreadcrumb>
+        <PageBreadcrumb hasBodyWrapper={false}>
           <Breadcrumb>
             {breadcrumbs?.map(({ key, children, ...bcProps }) => (
               <BreadcrumbItem key={key} {...bcProps}>
@@ -56,15 +55,15 @@ export const AppPage: React.FC<React.PropsWithChildren<AppPage.Props>> = (
             <PageHeaderTitle title={title} />
             {headerActions}
           </div>
-          <TextContent
-            style={{ paddingBlockStart: 'var(--pf-v5-global--spacer--md)' }}
+          <Content
+            style={{ paddingBlockStart: "var(--pf-t--global--spacer--md)" }}
           >
-            <Text component="small">{caption}</Text>
-          </TextContent>
+            <Content component="small">{caption}</Content>
+          </Content>
         </PageHeader>
         <Divider />
       </div>
-      <PageSection>{children}</PageSection>
+      <PageSection hasBodyWrapper={false}>{children}</PageSection>
     </Page>
   );
 };

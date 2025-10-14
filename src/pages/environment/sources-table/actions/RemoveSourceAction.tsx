@@ -3,8 +3,7 @@ import React, { useCallback, useState } from 'react';
 import {
   Button,
   Icon,
-  Text,
-  TextContent,
+  Content,
   Tooltip,
 } from '@patternfly/react-core';
 import { TrashIcon } from '@patternfly/react-icons';
@@ -54,16 +53,14 @@ export const RemoveSourceAction: React.FC<RemoveSourceAction.Props> = (
   return (
     <>
       <Tooltip content="Remove">
-        <Button
+        <Button icon={<Icon size="md" isInline>
+            <TrashIcon />
+          </Icon>}
           data-source-id={sourceId}
           variant="plain"
           isDisabled={isDisabled}
           onClick={showConfirmationModal}
-        >
-          <Icon size="md" isInline>
-            <TrashIcon />
-          </Icon>
-        </Button>
+         />
       </Tooltip>
       {onConfirm && shouldShowConfirmationModal && (
         <ConfirmationModal
@@ -75,14 +72,14 @@ export const RemoveSourceAction: React.FC<RemoveSourceAction.Props> = (
           onConfirm={handleConfirm}
           onClose={dismissConfirmationModal}
         >
-          <TextContent>
-            <Text id="confirmation-modal-description">
+          <Content>
+            <Content component="p" id="confirmation-modal-description">
               Are you sure you want to delete{' '}
               <b>{sourceName ? sourceName : 'this environment'}</b>?
               <br />
               To use it again, create a new discovery image and redeploy it.
-            </Text>
-          </TextContent>
+            </Content>
+          </Content>
         </ConfirmationModal>
       )}
     </>
