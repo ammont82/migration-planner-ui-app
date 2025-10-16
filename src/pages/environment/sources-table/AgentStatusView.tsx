@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import type { Agent } from '@migration-planner-ui/api-client/models';
 import {
   Button,
   Icon,
+  Modal,
   Popover,
   Spinner,
   Split,
@@ -36,7 +36,8 @@ export namespace AgentStatusView {
 
 const StatusInfoWaitingForCredentials: React.FC<{
   credentialUrl?: Agent['credentialUrl'];
-}> = ({ credentialUrl }) => {
+  onOpenModal: () => void;
+}> = ({ credentialUrl, onOpenModal }) => {
   return (
     <>
       <TextContent>
@@ -46,9 +47,9 @@ const StatusInfoWaitingForCredentials: React.FC<{
         </Text>
       </TextContent>
       {credentialUrl && (
-        <Link to={credentialUrl} target="_blank">
+        <Button variant="link" isInline onClick={onOpenModal}>
           {credentialUrl}
-        </Link>
+        </Button>
       )}
     </>
   );
@@ -63,6 +64,8 @@ export const AgentStatusView: React.FC<AgentStatusView.Props> = (props) => {
     updatedAt,
     disableInteractions,
   } = props;
+  const [isCredentialModalOpen, setIsCredentialModalOpen] = useState(false);
+  const [isPopoverVisible, setIsPopoverVisible] = useState(false);
   const statusView = useMemo(() => {
     // eslint-disable-next-line prefer-const
     let fake: Agent['status'] | null = null;
@@ -124,6 +127,26 @@ export const AgentStatusView: React.FC<AgentStatusView.Props> = (props) => {
     }
   }, [status, uploadedManually]);
 
+  useEffect(() => {
+    if (!isCredentialModalOpen) return;
+    let expectedOrigin: string | undefined;
+    try {
+      expectedOrigin = credentialUrl ? new URL(credentialUrl).origin : undefined;
+    } catch {
+      expectedOrigin = undefined;
+    }
+    const onMessage = (event: MessageEvent) => {
+      if (expectedOrigin && event.origin !== expectedOrigin) return;
+      const data = event.data as unknown as { type?: string } | string;
+      const type = typeof data === 'string' ? data : data?.type;
+      if (type === 'CREDENTIALS_DONE' || type === 'CLOSE_MODAL') {
+        setIsCredentialModalOpen(false);
+      }
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [isCredentialModalOpen, credentialUrl]);
+
   if (disableInteractions) {
     return (
       <Split hasGutter style={{ gap: '0.66rem' }}>
@@ -134,41 +157,65 @@ export const AgentStatusView: React.FC<AgentStatusView.Props> = (props) => {
   }
 
   return (
-    <Split hasGutter style={{ gap: '0.66rem' }}>
-      <SplitItem>{statusView && statusView.icon}</SplitItem>
-      <SplitItem>
-        {statusInfo ||
-        (statusView && statusView.text === 'Waiting for credentials') ||
-        (uploadedManually && !statusInfo) ? (
-          <Popover
-            aria-label={statusView && statusView.text}
-            headerContent={statusView && statusView.text}
-            headerComponent="h1"
-            bodyContent={
-              statusView && statusView.text === 'Waiting for credentials' ? (
-                <StatusInfoWaitingForCredentials
-                  credentialUrl={credentialUrl}
-                />
-              ) : uploadedManually && !statusInfo ? (
-                <TextContent>
-                  <Text>{`Last updated via inventory file on ${updatedAt ? new Date(updatedAt).toLocaleString() : '-'}`}</Text>
-                </TextContent>
-              ) : (
-                <TextContent>
-                  <Text>{statusInfo}</Text>
-                </TextContent>
-              )
-            }
-          >
-            <Button variant="link" isInline>
-              {statusView && statusView.text}
-            </Button>
-          </Popover>
-        ) : (
-          statusView && statusView.text
-        )}
-      </SplitItem>
-    </Split>
+    <>
+      <Split hasGutter style={{ gap: '0.66rem' }}>
+        <SplitItem>{statusView && statusView.icon}</SplitItem>
+        <SplitItem>
+          {statusInfo ||
+          (statusView && statusView.text === 'Waiting for credentials') ||
+          (uploadedManually && !statusInfo) ? (
+            <Popover
+              isVisible={isPopoverVisible}
+              shouldClose={() => setIsPopoverVisible(false)}
+              aria-label={statusView && statusView.text}
+              headerContent={statusView && statusView.text}
+              headerComponent="h1"
+              bodyContent={
+                statusView && statusView.text === 'Waiting for credentials' ? (
+                  <StatusInfoWaitingForCredentials
+                    credentialUrl={credentialUrl}
+                    onOpenModal={() => {
+                      setIsCredentialModalOpen(true);
+                      setIsPopoverVisible(false);
+                    }}
+                  />
+                ) : uploadedManually && !statusInfo ? (
+                  <TextContent>
+                    <Text>{`Last updated via inventory file on ${updatedAt ? new Date(updatedAt).toLocaleString() : '-'}`}</Text>
+                  </TextContent>
+                ) : (
+                  <TextContent>
+                    <Text>{statusInfo}</Text>
+                  </TextContent>
+                )
+              }
+            >
+              <Button variant="link" isInline onClick={() => setIsPopoverVisible((v) => !v)}>
+                {statusView && statusView.text}
+              </Button>
+            </Popover>
+          ) : (
+            statusView && statusView.text
+          )}
+        </SplitItem>
+      </Split>
+      <Modal
+        isOpen={isCredentialModalOpen}
+        title="Connect discovery environment"
+        variant="large"
+        onClose={() => setIsCredentialModalOpen(false)}
+      >
+        <div style={{ height: '80vh' }}>
+          {credentialUrl ? (
+            <iframe
+              title="Credentials"
+              src={credentialUrl}
+              style={{ width: '100%', height: '100%', border: 0 }}
+            />
+          ) : null}
+        </div>
+      </Modal>
+    </>
   );
 };
 
