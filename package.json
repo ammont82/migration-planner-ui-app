@@ -22,8 +22,8 @@
     "verify": "npm-run-all build lint test",
     "prettier": "prettier --write src",
     "prettier:check": "prettier --check src",
-    "start:standalone": "NODE_OPTIONS='--localstorage-file=.tmp/webpack-localstorage.json' webpack serve --config webpack.standalone.js",
-    "build:standalone": "NODE_OPTIONS='--localstorage-file=.tmp/webpack-localstorage.json' webpack --config webpack.standalone.js --mode production",
+    "start:standalone": "webpack serve --config webpack.standalone.js",
+    "build:standalone": "webpack --config webpack.standalone.js --mode production",
     "serve:standalone": "serve dist-standalone -p 3001"
   },
   "dependencies": {

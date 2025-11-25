@@ -146,6 +146,43 @@ const EnhancedDownloadButton: React.FC<EnhancedDownloadButtonProps> = ({
   const hasInventoryData =
     Boolean(sourceData?.inventory) || Boolean(snapshot.inventory);
 
+  // Wait until charts (SVG) are rendered and measurable to avoid blank exports
+  const waitForRender = async (
+    container: HTMLElement,
+    timeoutMs = 4000,
+  ): Promise<void> => {
+    const start = performance.now();
+    // Wait for fonts if supported
+    try {
+      const fontsReady =
+        (document as unknown as { fonts?: { ready?: Promise<void> } }).fonts
+          ?.ready;
+      if (fontsReady) await fontsReady;
+    } catch {
+      /* noop */
+    }
+    while (performance.now() - start < timeoutMs) {
+      const svgs = Array.from(container.querySelectorAll('svg'));
+      if (svgs.length > 0) {
+        const allReady = svgs.every((svg) => {
+          try {
+            const bbox = (svg as SVGGraphicsElement).getBBox();
+            return bbox.width > 0 && bbox.height > 0;
+          } catch {
+            return false;
+          }
+        });
+        if (allReady) break;
+      }
+      // Small delay before next check
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    // Ensure at least two frames after final paint
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+  };
+
   const handleDownloadPDF = async (): Promise<void> => {
     // Ensure cleanup even on errors
     let tempDiv: HTMLDivElement | null = null;
@@ -169,9 +206,8 @@ const EnhancedDownloadButton: React.FC<EnhancedDownloadButtonProps> = ({
       root = createRoot(tempDiv);
       root.render(componentToRender);
 
-      await new Promise((resolve) =>
-        setTimeout(resolve, EXPORT_CONFIG.CANVAS_TIMEOUT),
-      );
+      // Wait for charts and layout to stabilize before rasterizing
+      await waitForRender(hiddenContainer, 5000);
 
       const canvas = await html2canvas(hiddenContainer, { useCORS: true });
       const imgData = canvas.toDataURL('image/png');
