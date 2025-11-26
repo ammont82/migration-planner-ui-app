@@ -43,6 +43,7 @@ export const VMMigrationStatus: React.FC<VmMigrationStatusProps> = ({
             labels={({ datum }) => `${datum.x}: ${datum.y}`}
             colorScale={['#28a745', '#dc3545']}
             constrainToVisibleArea
+            animate={isExportMode ? false : undefined}
             title={`${data.migratable + data.nonMigratable}`}
             subTitle="VMs"
           />

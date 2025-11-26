@@ -20,6 +20,7 @@ interface MigrationDonutChartProps {
   titleColor?: string;
   subTitleColor?: string;
   itemsPerRow?: number;
+  isExportMode?: boolean;
 }
 
 const legendColors = ['#0066cc', '#5e40be', '#b6a6e9', '#b98412'];
@@ -35,6 +36,7 @@ const MigrationDonutChart: React.FC<MigrationDonutChartProps> = ({
   titleColor = '#000000',
   subTitleColor = '#000000',
   itemsPerRow = 1,
+  isExportMode,
 }: MigrationDonutChartProps) => {
   const dynamicLegend = useMemo(() => {
     return data.reduce(
@@ -104,6 +106,7 @@ const MigrationDonutChart: React.FC<MigrationDonutChartProps> = ({
           right: 20,
           top: 0,
         }}
+        animate={isExportMode ? false : undefined}
         titleComponent={
           title ? (
             <ChartLabel

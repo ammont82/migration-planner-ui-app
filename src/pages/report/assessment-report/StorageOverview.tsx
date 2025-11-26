@@ -213,6 +213,7 @@ export const StorageOverview: React.FC<StorageOverviewProps> = ({
                 subTitle="VMs"
                 subTitleColor="#9a9da0"
                 itemsPerRow={Math.ceil(buildChartDataFor('vmCount').length / 2)}
+                isExportMode={isExportMode}
               />
             </div>
             <div>
@@ -233,6 +234,7 @@ export const StorageOverview: React.FC<StorageOverviewProps> = ({
                 subTitle={`${totals.totalVMs} VMs`}
                 subTitleColor="#9a9da0"
                 itemsPerRow={Math.ceil(buildChartDataFor('totalSize').length / 2)}
+                isExportMode={isExportMode}
               />
             </div>
           </>
@@ -248,6 +250,7 @@ export const StorageOverview: React.FC<StorageOverviewProps> = ({
             subTitle={viewMode === 'totalSize' ? `${totals.totalVMs} VMs` : `VMs`}
             subTitleColor="#9a9da0"
             itemsPerRow={Math.ceil(chartData.length / 2)}
+            isExportMode={isExportMode}
           />
         )}
       </CardBody>

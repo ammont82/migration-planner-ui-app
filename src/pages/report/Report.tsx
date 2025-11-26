@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMount } from 'react-use';
 
@@ -44,6 +44,30 @@ type AssessmentLike = {
 const Inner: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const discoverySourcesContext = useDiscoverySources();
+  const [isExportMode, setIsExportMode] = useState(false);
+
+  const handleExportPdf = async (): Promise<void> => {
+    setIsExportMode(true);
+    await Promise.resolve();
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (document as any).fonts?.ready;
+    } catch {
+      // ignore
+    }
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => resolve()),
+      ),
+    );
+    window.print();
+  };
+
+  useEffect(() => {
+    const onAfter = (): void => setIsExportMode(false);
+    window.addEventListener('afterprint', onAfter);
+    return () => window.removeEventListener('afterprint', onAfter);
+  }, []);
 
   useMount(async () => {
     if (
@@ -163,7 +187,7 @@ const Inner: React.FC = () => {
         </>
       }
       headerActions={
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className="export-button-container" style={{ display: 'flex', gap: '0.5rem' }}>
           {infra && vms && cpuCores && ramGB ? (
             <>
               <EnhancedDownloadButton
@@ -180,6 +204,9 @@ const Inner: React.FC = () => {
                 sourceData={discoverySourcesContext.sourceSelected as Source}
                 snapshot={last}
               />
+              <Button variant="secondary" onClick={handleExportPdf}>
+                Export to PDF
+              </Button>
               <Button variant="primary" onClick={openAssistedInstaller}>
                 Create a target cluster
               </Button>
@@ -189,7 +216,13 @@ const Inner: React.FC = () => {
       }
     >
       {infra && vms && cpuCores && ramGB ? (
-        <Dashboard infra={infra} cpuCores={cpuCores} ramGB={ramGB} vms={vms} />
+        <Dashboard
+          infra={infra}
+          cpuCores={cpuCores}
+          ramGB={ramGB}
+          vms={vms}
+          isExportMode={isExportMode}
+        />
       ) : (
         <Bullseye>
           <Content>
