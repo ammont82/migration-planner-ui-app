@@ -2,7 +2,7 @@ import {
   Assessment,
   Job,
   Source,
-} from "@migration-planner-ui/api-client/models";
+} from "@openshift-migration-advisor/planner-sdk";
 
 declare namespace DiscoverySources {
   type Context = {

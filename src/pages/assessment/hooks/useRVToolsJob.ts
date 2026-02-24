@@ -1,5 +1,5 @@
-import { JobApi } from "@migration-planner-ui/api-client/apis";
-import { Job, JobStatus } from "@migration-planner-ui/api-client/models";
+import { JobApi } from "@openshift-migration-advisor/planner-sdk";
+import { Job, JobStatus } from "@openshift-migration-advisor/planner-sdk";
 import { useCallback, useRef, useState } from "react";
 import { useInterval } from "react-use";
 

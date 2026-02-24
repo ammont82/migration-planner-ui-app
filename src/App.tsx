@@ -2,8 +2,8 @@ import {
   AssessmentApi,
   ImageApi,
   SourceApi,
-} from "@migration-planner-ui/api-client/apis";
-import { Configuration } from "@migration-planner-ui/api-client/runtime";
+} from "@openshift-migration-advisor/planner-sdk";
+import { Configuration } from "@openshift-migration-advisor/planner-sdk";
 import { Container } from "@migration-planner-ui/ioc";
 import { Provider as DependencyInjectionProvider } from "@migration-planner-ui/ioc";
 import { Spinner } from "@patternfly/react-core";

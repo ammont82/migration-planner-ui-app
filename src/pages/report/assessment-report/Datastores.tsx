@@ -1,4 +1,4 @@
-import { Datastore } from "@migration-planner-ui/api-client/models";
+import { Datastore } from "@openshift-migration-advisor/planner-sdk";
 import {
   Card,
   CardBody,

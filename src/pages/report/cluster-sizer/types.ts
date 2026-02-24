@@ -2,7 +2,7 @@
  * Cluster Sizer Types
  *
  * UI-specific types for the cluster sizing wizard.
- * API types are re-exported from @migration-planner-ui/api-client.
+ * API types are re-exported from @openshift-migration-advisor/planner-sdk.
  *
  * @see ECOPROJECT-3631
  * @see ECOPROJECT-3967 - CPU and memory overcommit specified individually
@@ -12,7 +12,7 @@ import {
   type ClusterRequirementsRequest,
   ClusterRequirementsRequestCpuOverCommitRatioEnum,
   ClusterRequirementsRequestMemoryOverCommitRatioEnum,
-} from "@migration-planner-ui/api-client/models";
+} from "@openshift-migration-advisor/planner-sdk";
 
 // Re-export API types from api-client
 export type {
@@ -23,7 +23,7 @@ export type {
   SizingOverCommitRatio,
   SizingResourceConsumption,
   SizingResourceLimits,
-} from "@migration-planner-ui/api-client/models";
+} from "@openshift-migration-advisor/planner-sdk";
 
 /**
  * Worker node size preset options

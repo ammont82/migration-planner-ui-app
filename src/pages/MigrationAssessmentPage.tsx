@@ -1,4 +1,4 @@
-import { Assessment } from "@migration-planner-ui/api-client/models";
+import { Assessment } from "@openshift-migration-advisor/planner-sdk";
 import {
   Bullseye,
   Button,

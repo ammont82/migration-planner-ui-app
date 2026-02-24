@@ -1,4 +1,4 @@
-import type { Snapshot as SnapshotModel } from "@migration-planner-ui/api-client/models";
+import type { Snapshot as SnapshotModel } from "@openshift-migration-advisor/planner-sdk";
 import { describe, expect, it } from "vitest";
 
 import { hasUsefulData } from "./snapshotParser";

@@ -1,4 +1,4 @@
-import { Job, JobStatus } from "@migration-planner-ui/api-client/models";
+import { Job, JobStatus } from "@openshift-migration-advisor/planner-sdk";
 import {
   Alert,
   Button,

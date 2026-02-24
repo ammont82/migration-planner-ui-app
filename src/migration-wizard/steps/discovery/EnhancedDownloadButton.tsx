@@ -1,6 +1,6 @@
 import "./DownloadPDFStyles.css";
 
-import type { Source } from "@migration-planner-ui/api-client/models";
+import type { Source } from "@openshift-migration-advisor/planner-sdk";
 import { useInjection } from "@migration-planner-ui/ioc";
 import {
   Button,

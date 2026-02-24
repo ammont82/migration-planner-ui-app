@@ -1,4 +1,4 @@
-import { Assessment as AssessmentModel } from "@migration-planner-ui/api-client/models";
+import { Assessment as AssessmentModel } from "@openshift-migration-advisor/planner-sdk";
 import {
   Button,
   Dropdown,

@@ -3,14 +3,14 @@ import {
   type ImageApiInterface,
   JobApi,
   type SourceApiInterface,
-} from "@migration-planner-ui/api-client/apis";
+} from "@openshift-migration-advisor/planner-sdk";
 import {
   Assessment,
   Inventory,
   Source,
   UpdateInventoryFromJSON,
-} from "@migration-planner-ui/api-client/models";
-import { Configuration } from "@migration-planner-ui/api-client/runtime";
+} from "@openshift-migration-advisor/planner-sdk";
+import { Configuration } from "@openshift-migration-advisor/planner-sdk";
 import { useInjection } from "@migration-planner-ui/ioc";
 import React, {
   type PropsWithChildren,

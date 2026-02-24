@@ -1,4 +1,4 @@
-import { MigrationIssue } from "@migration-planner-ui/api-client/models";
+import { MigrationIssue } from "@openshift-migration-advisor/planner-sdk";
 import { Card, CardBody, CardTitle, Icon } from "@patternfly/react-core";
 import { ExclamationCircleIcon } from "@patternfly/react-icons";
 import { t_global_icon_color_status_danger_default as globalDangerColor100 } from "@patternfly/react-tokens/dist/js/t_global_icon_color_status_danger_default";

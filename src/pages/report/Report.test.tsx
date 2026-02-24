@@ -8,7 +8,7 @@ import type {
   Source,
   VMResourceBreakdown,
   VMs,
-} from "@migration-planner-ui/api-client/models";
+} from "@openshift-migration-advisor/planner-sdk";
 import {
   cleanup,
   render,

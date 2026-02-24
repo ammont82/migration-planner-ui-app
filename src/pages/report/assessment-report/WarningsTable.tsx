@@ -1,4 +1,4 @@
-import { MigrationIssue } from "@migration-planner-ui/api-client/models";
+import { MigrationIssue } from "@openshift-migration-advisor/planner-sdk";
 import { Card, CardBody, CardTitle, Icon } from "@patternfly/react-core";
 import { ExclamationTriangleIcon } from "@patternfly/react-icons";
 import { t_global_icon_color_status_warning_default as globalWarningColor100 } from "@patternfly/react-tokens/dist/js/t_global_icon_color_status_warning_default";

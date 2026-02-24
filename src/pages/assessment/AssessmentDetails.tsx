@@ -1,4 +1,4 @@
-import { Snapshot as SnapshotModel } from "@migration-planner-ui/api-client/models";
+import { Snapshot as SnapshotModel } from "@openshift-migration-advisor/planner-sdk";
 import {
   Bullseye,
   Button,

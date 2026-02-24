@@ -2,7 +2,7 @@ import type {
   Datastore,
   MigrationIssue,
   Network,
-} from "@migration-planner-ui/api-client/models";
+} from "@openshift-migration-advisor/planner-sdk";
 import {
   Badge,
   Content,

@@ -1,5 +1,5 @@
-import { AssessmentApi } from "@migration-planner-ui/api-client/apis";
-import { ResponseError } from "@migration-planner-ui/api-client/runtime";
+import { AssessmentApi } from "@openshift-migration-advisor/planner-sdk";
+import { ResponseError } from "@openshift-migration-advisor/planner-sdk";
 import { useInjection } from "@migration-planner-ui/ioc";
 import {
   Modal,

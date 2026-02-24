@@ -1,4 +1,4 @@
-import type { Host, Infra, VMs } from "@migration-planner-ui/api-client/models";
+import type { Host, Infra, VMs } from "@openshift-migration-advisor/planner-sdk";
 import { describe, expect, it } from "vitest";
 
 // Extract the logic from Report.tsx for testing

@@ -1,4 +1,4 @@
-import { Network } from "@migration-planner-ui/api-client/models";
+import { Network } from "@openshift-migration-advisor/planner-sdk";
 import { Card, CardBody, CardTitle } from "@patternfly/react-core";
 import NetworkIcon from "@patternfly/react-icons/dist/esm/icons/network-icon";
 import React from "react";

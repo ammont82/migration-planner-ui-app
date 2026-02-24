@@ -3,7 +3,7 @@ import {
   Inventory,
   InventoryFromJSON,
   VMs,
-} from "@migration-planner-ui/api-client/models";
+} from "@openshift-migration-advisor/planner-sdk";
 import {
   Icon,
   MenuToggle,

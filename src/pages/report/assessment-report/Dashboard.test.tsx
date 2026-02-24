@@ -6,7 +6,7 @@ import type {
   InventoryData,
   VMResourceBreakdown,
   VMs,
-} from "@migration-planner-ui/api-client/models";
+} from "@openshift-migration-advisor/planner-sdk";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

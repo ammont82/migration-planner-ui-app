@@ -1,4 +1,4 @@
-import type { Agent } from "@migration-planner-ui/api-client/models";
+import type { Agent } from "@openshift-migration-advisor/planner-sdk";
 import {
   Button,
   Content,

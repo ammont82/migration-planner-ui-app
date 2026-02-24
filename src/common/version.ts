@@ -1,5 +1,5 @@
-import { InfoApi } from "@migration-planner-ui/api-client/apis";
-import { Configuration } from "@migration-planner-ui/api-client/runtime";
+import { InfoApi } from "@openshift-migration-advisor/planner-sdk";
+import { Configuration } from "@openshift-migration-advisor/planner-sdk";
 
 // API info interface based on the migration-planner API response
 interface ApiInfo {

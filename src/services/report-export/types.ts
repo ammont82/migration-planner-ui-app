@@ -6,7 +6,7 @@ import type {
   Infra,
   InventoryData as ApiInventoryData,
   VMs,
-} from "@migration-planner-ui/api-client/models";
+} from "@openshift-migration-advisor/planner-sdk";
 
 // OS Information
 export interface OSInfo {
@@ -117,7 +117,7 @@ export interface HtmlExportOptions extends ExportOptions {
  * Snapshot-like structure for both runtime rendering and export processing.
  *
  * This unified type supports both:
- * - API client models (`Infra`, `VMs` from `@migration-planner-ui/api-client/models`)
+ * - API client models (`Infra`, `VMs` from `@openshift-migration-advisor/planner-sdk/models`)
  *   for live data rendering
  * - Internal simplified types (`InfraData`, `VMsData`) for export pipelines
  *   (PDF/HTML generation, chart data transformation)

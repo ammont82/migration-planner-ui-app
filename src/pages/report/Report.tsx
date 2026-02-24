@@ -3,7 +3,7 @@ import {
   InventoryData,
   Snapshot,
   VMs,
-} from "@migration-planner-ui/api-client/models";
+} from "@openshift-migration-advisor/planner-sdk";
 import {
   Alert,
   AlertActionCloseButton,

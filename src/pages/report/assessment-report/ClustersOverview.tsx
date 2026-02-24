@@ -1,6 +1,6 @@
 import "./ClustersOverview.css";
 
-import { InventoryData } from "@migration-planner-ui/api-client/models";
+import { InventoryData } from "@openshift-migration-advisor/planner-sdk";
 import {
   Card,
   CardBody,
