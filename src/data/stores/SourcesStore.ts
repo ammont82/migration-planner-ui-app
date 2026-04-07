@@ -156,16 +156,23 @@ export class SourcesStore
       this.notify();
       return this.sources;
     } catch (error) {
-      if (process.env.NODE_ENV !== "production" && !this.usingStubs) {
-        console.warn(
-          "[SourcesStore] API unreachable, using stub sources for development:",
-          error,
-        );
-        this.sources = createStubSources().map(createSourceModel);
-        this.usingStubs = true;
-        this.notify();
+      if (error instanceof Error && error.name === "AbortError") {
         return this.sources;
       }
+
+      if (process.env.NODE_ENV !== "production") {
+        if (!this.usingStubs) {
+          console.warn(
+            "[SourcesStore] API unreachable, using stub sources for development:",
+            error,
+          );
+          this.sources = createStubSources().map(createSourceModel);
+          this.usingStubs = true;
+          this.notify();
+        }
+        return this.sources;
+      }
+
       throw error;
     }
   }
@@ -243,7 +250,6 @@ export class SourcesStore
   }
 
   protected override async poll(signal: AbortSignal): Promise<void> {
-    if (this.usingStubs) return;
     await this.list(signal);
   }
 }

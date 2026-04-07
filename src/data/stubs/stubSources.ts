@@ -85,10 +85,10 @@ const makeSource = (
 });
 
 export const createStubSources = (): Source[] => [
-  // 1. Not connected — no agent at all → "OVA downloaded"
+  // 1. Not connected — no agent at all → "OVA downloading"
   makeSource({
     id: "stub-ova-downloaded",
-    name: "Lab vCenter (OVA downloaded)",
+    name: "Lab vCenter (OVA downloading)",
   }),
 
   // 2. Not connected + uploaded manually → "-"

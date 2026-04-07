@@ -4,15 +4,11 @@ import {
   Dropdown,
   DropdownItem,
   DropdownList,
-  Icon,
   InputGroup,
   InputGroupItem,
   MenuToggle,
   type MenuToggleElement,
-  Popover,
   SearchInput,
-  Split,
-  SplitItem,
   Toolbar,
   ToolbarContent,
   ToolbarItem,
@@ -22,15 +18,10 @@ import {
   ArrowLeftIcon,
   EllipsisVIcon,
   FilterIcon,
-  InfoCircleIcon,
   PlusCircleIcon,
-  QuestionCircleIcon,
   TimesIcon,
 } from "@patternfly/react-icons";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
-import { t_global_color_status_success_default as globalSuccessColor } from "@patternfly/react-tokens/dist/js/t_global_color_status_success_default";
-import { t_global_color_status_warning_default as globalWarningColor } from "@patternfly/react-tokens/dist/js/t_global_color_status_warning_default";
-import { t_global_icon_color_status_info_default as globalInfoColor } from "@patternfly/react-tokens/dist/js/t_global_icon_color_status_info_default";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -39,35 +30,14 @@ import { routes } from "../../../routing/Routes";
 import { ConfirmationModal } from "../../core/components/ConfirmationModal";
 import { EmptySearchResults } from "../../core/components/EmptySearchResults";
 import FilterPill from "../../core/components/FilterPill";
-import { VCenterSetupInstructions } from "../../core/components/VCenterSetupInstructions";
 import { useEnvironmentPage } from "../view-models/EnvironmentPageContext";
 import { AgentStatusView } from "./AgentStatusView";
 import { Columns } from "./Columns";
 import { EnvironmentEmptyState } from "./EnvironmentEmptyState";
 import { UploadInventoryAction } from "./UploadInventoryAction";
+import { VersionStatus } from "./VersionStatus";
 
 const VALUE_NOT_AVAILABLE = "-";
-
-const versionStatusLatest = css`
-  color: ${globalSuccessColor.value};
-`;
-
-const versionStatusOutdated = css`
-  color: ${globalWarningColor.value};
-`;
-
-const versionStatusSplit = css`
-  gap: 0.5rem;
-`;
-
-const versionStatusOvaDownloaded = css`
-  color: ${globalInfoColor.value};
-`;
-
-const versionInfoButton = css`
-  padding: 0;
-  min-width: auto;
-`;
 
 const tableContainerStyle = css`
   margin-top: 1em;
@@ -588,74 +558,14 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                     dataLabel={Columns.VersionStatus}
                     className={tableCellTop}
                   >
-                    {source.displayStatus === "not-connected" &&
-                    !(
-                      Boolean(source.onPremises) &&
-                      source.inventory !== undefined
-                    ) ? (
-                      <Split hasGutter className={versionStatusSplit}>
-                        <SplitItem>
-                          <span className={versionStatusOvaDownloaded}>
-                            OVA downloaded
-                          </span>
-                        </SplitItem>
-                        <SplitItem>
-                          <Popover
-                            aria-label="OVA installation instructions"
-                            headerContent="Install the OVA in your vCenter"
-                            headerComponent="h2"
-                            bodyContent={<VCenterSetupInstructions />}
-                            minWidth="600px"
-                          >
-                            <Button
-                              variant="plain"
-                              aria-label="OVA installation instructions"
-                              className={versionInfoButton}
-                            >
-                              <Icon isInline>
-                                <QuestionCircleIcon
-                                  color={globalInfoColor.value}
-                                />
-                              </Icon>
-                            </Button>
-                          </Popover>
-                        </SplitItem>
-                      </Split>
-                    ) : source.displayStatus === "not-connected" ? (
-                      VALUE_NOT_AVAILABLE
-                    ) : source.agentVersionWarning ? (
-                      <Split hasGutter className={versionStatusSplit}>
-                        <SplitItem>
-                          <span className={versionStatusOutdated}>
-                            Outdated
-                          </span>
-                        </SplitItem>
-                        <SplitItem>
-                          <Popover
-                            aria-label="Version warning"
-                            headerContent="Version Warning"
-                            headerComponent="h2"
-                            bodyContent={
-                              <div>{source.agentVersionWarning}</div>
-                            }
-                          >
-                            <Button
-                              variant="plain"
-                              aria-label="Version warning info"
-                              className={versionInfoButton}
-                            >
-                              <Icon isInline>
-                                <InfoCircleIcon
-                                  color={globalWarningColor.value}
-                                />
-                              </Icon>
-                            </Button>
-                          </Popover>
-                        </SplitItem>
-                      </Split>
-                    ) : (
-                      <span className={versionStatusLatest}>Up to date</span>
-                    )}
+                    <VersionStatus
+                      displayStatus={source.displayStatus}
+                      isUploadedManually={
+                        Boolean(source.onPremises) &&
+                        source.inventory !== undefined
+                      }
+                      agentVersionWarning={source.agentVersionWarning}
+                    />
                   </Td>
                   <Td dataLabel={Columns.Hosts} className={tableCellTop}>
                     {source?.inventory?.vcenter?.infra.totalHosts ??
