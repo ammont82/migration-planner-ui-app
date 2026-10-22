@@ -27,7 +27,7 @@ export type AssessmentMode = "inventory" | "rvtools" | "agent";
 interface CreateAssessmentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (name: string, file: File | null, mode: AssessmentMode) => void;
+  onSubmit?: (name: string, file: File | null, mode: AssessmentMode) => void;
   onClearError?: () => void;
   mode: AssessmentMode;
   isLoading?: boolean;
@@ -225,7 +225,7 @@ export const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
 
   const handleSubmit = (): void => {
     if (validateForm()) {
-      onSubmit(assessmentName.trim(), selectedFile, mode);
+      onSubmit?.(assessmentName.trim(), selectedFile, mode);
     }
   };
 
@@ -249,6 +249,7 @@ export const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
 
   const isButtonDisabled =
     !isFormValid ||
+    !onSubmit ||
     (mode === "rvtools" && !rvtoolsConsentChecked) ||
     isLoading ||
     !!nameErrorToDisplay ||

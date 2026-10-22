@@ -1,14 +1,16 @@
 import {
+  type Assessment,
   type AssessmentApiInterface,
+  type AssessmentVCenterV2,
   type CalculateAssessmentClusterRequirementsRequest,
   type CalculateMigrationComplexityRequest,
   type CalculateMigrationEstimationByComplexityRequest,
   type CalculateMigrationEstimationRequest,
   type EnhancementData,
   type GetAssessmentClusterRequirementsStoredInputRequest,
+  type InventoryData,
   ResponseError,
 } from "@openshift-migration-advisor/planner-sdk";
-import { type Assessment } from "@openshift-migration-advisor/planner-sdk";
 import {
   type Configuration,
   type InitOverrideFunction,
@@ -146,6 +148,31 @@ export class AssessmentsStore
     }
     this.notify();
     return model;
+  }
+
+  async getVcenter(
+    id: string,
+    vid: string,
+    initOverrides?: RequestInit | InitOverrideFunction,
+  ): Promise<AssessmentVCenterV2> {
+    try {
+      return await this.api.getVcenter({ id, vid }, initOverrides);
+    } catch (err) {
+      throw await parseApiError(err, "Failed to fetch vCenter inventory");
+    }
+  }
+
+  async getVcenterCluster(
+    id: string,
+    vid: string,
+    cid: string,
+    initOverrides?: RequestInit | InitOverrideFunction,
+  ): Promise<InventoryData> {
+    try {
+      return await this.api.getVcenterCluster({ id, vid, cid }, initOverrides);
+    } catch (err) {
+      throw await parseApiError(err, "Failed to fetch cluster inventory");
+    }
   }
 
   async create(

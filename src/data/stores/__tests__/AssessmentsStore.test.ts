@@ -24,6 +24,8 @@ const createMockApi = (): AssessmentApiInterface =>
   ({
     listAssessments: vi.fn(),
     getAssessment: vi.fn(),
+    getVcenter: vi.fn(),
+    getVcenterCluster: vi.fn(),
     createAssessment: vi.fn(),
     updateAssessment: vi.fn(),
     deleteAssessment: vi.fn(),
@@ -613,6 +615,41 @@ describe("AssessmentsStore", () => {
       ).resolves.toEqual(enhancement);
       expect(api.saveAssessmentEnhancementData).toHaveBeenCalledWith(
         { id: "a-1", enhancementData: enhancement },
+        undefined,
+      );
+    });
+  });
+
+  describe("v2 inventory", () => {
+    it("getVcenter delegates to the assessment API", async () => {
+      const payload = {
+        data: {
+          id: "vc-1",
+          data: { infra: {} as never, vms: {} as never },
+        },
+        clusters: [],
+      };
+      vi.mocked(api.getVcenter).mockResolvedValue(payload);
+
+      await expect(store.getVcenter("a-1", "vc-1")).resolves.toEqual(payload);
+      expect(api.getVcenter).toHaveBeenCalledWith(
+        { id: "a-1", vid: "vc-1" },
+        undefined,
+      );
+    });
+
+    it("getVcenterCluster delegates to the assessment API", async () => {
+      const payload = {
+        infra: {} as never,
+        vms: { total: 3 } as never,
+      };
+      vi.mocked(api.getVcenterCluster).mockResolvedValue(payload);
+
+      await expect(
+        store.getVcenterCluster("a-1", "vc-1", "cluster-1"),
+      ).resolves.toEqual(payload);
+      expect(api.getVcenterCluster).toHaveBeenCalledWith(
+        { id: "a-1", vid: "vc-1", cid: "cluster-1" },
         undefined,
       );
     });

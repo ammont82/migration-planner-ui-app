@@ -33,6 +33,7 @@ import {
   Columns,
   type SortableColumn,
 } from "./AssessmentsTable";
+import CreateRvtoolsAssessmentModal from "./create-rvtools/CreateRvtoolsAssessmentModal";
 import CreateAssessmentModal, {
   type AssessmentMode,
 } from "./CreateAssessmentModal";
@@ -61,6 +62,8 @@ export const AssessmentsPage: React.FC<AssessmentsPageProps> = ({
     jobProgressValue,
     jobProgressLabel,
     jobError,
+    rvtoolsUpload,
+    rvtoolsPartialAssessmentId,
     isNavigatingToReport,
     isSharingAssessment,
     isUnsharingAssessment,
@@ -73,6 +76,9 @@ export const AssessmentsPage: React.FC<AssessmentsPageProps> = ({
     setSortBy,
     createRVToolsJob,
     clearJobCreateError,
+    clearRvtoolsUploadResults,
+    removeRvtoolsUploadResult,
+    completePartialRvtoolsUpload,
     cancelRVToolsJob,
     updateAssessment,
     shareAssessment,
@@ -294,12 +300,19 @@ export const AssessmentsPage: React.FC<AssessmentsPageProps> = ({
     handleCloseDeleteModal();
   };
 
-  // Submit handler for RVTools mode - starts job, modal stays open.
-  // The actual async work is fire-and-forget via the VM's useAsyncFn.
-  const handleSubmitAssessment = (name: string, file: File | null): void => {
-    if (!file) return;
-    void createRVToolsJob(name, file);
+  const handleSubmitRvtoolsAssessment = (payload: {
+    name: string;
+    files: File[];
+  }): void => {
+    if (payload.files.length === 0) return;
+    void createRVToolsJob(payload.name, payload.files);
   };
+
+  const handlePartialRvtoolsUploadResolved = useCallback((): void => {
+    void completePartialRvtoolsUpload().then(() => {
+      setIsModalOpen(false);
+    });
+  }, [completePartialRvtoolsUpload]);
 
   return (
     <>
@@ -354,21 +367,43 @@ export const AssessmentsPage: React.FC<AssessmentsPageProps> = ({
         </div>
       )}
 
-      <CreateAssessmentModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSubmit={handleSubmitAssessment}
-        onClearError={clearJobCreateError}
-        mode={modalMode}
-        isLoading={isCreatingJob}
-        error={jobCreateError}
-        selectedEnvironment={null}
-        isJobProcessing={isJobProcessing}
-        jobProgressValue={jobProgressValue}
-        jobProgressLabel={jobProgressLabel}
-        jobError={jobError}
-        isNavigatingToReport={isNavigatingToReport}
-      />
+      {modalMode === "rvtools" ? (
+        <CreateRvtoolsAssessmentModal
+          mode="create"
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSubmit={handleSubmitRvtoolsAssessment}
+          onClearError={clearJobCreateError}
+          onClearRvtoolsUpload={clearRvtoolsUploadResults}
+          onStagedFileRemoved={({ fileName, fileSize }) => {
+            removeRvtoolsUploadResult(fileName, fileSize);
+          }}
+          isLoading={isCreatingJob}
+          error={jobCreateError}
+          isJobProcessing={isJobProcessing}
+          jobProgressValue={jobProgressValue}
+          jobError={jobError}
+          rvtoolsUpload={rvtoolsUpload}
+          resumePartialAssessmentId={rvtoolsPartialAssessmentId}
+          onPartialAssessmentResolved={handlePartialRvtoolsUploadResolved}
+          isNavigatingToReport={isNavigatingToReport}
+        />
+      ) : (
+        <CreateAssessmentModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onClearError={clearJobCreateError}
+          mode={modalMode}
+          isLoading={isCreatingJob}
+          error={jobCreateError}
+          selectedEnvironment={null}
+          isJobProcessing={isJobProcessing}
+          jobProgressValue={jobProgressValue}
+          jobProgressLabel={jobProgressLabel}
+          jobError={jobError}
+          isNavigatingToReport={isNavigatingToReport}
+        />
+      )}
 
       <UpdateAssessment
         isOpen={isUpdateModalOpen}

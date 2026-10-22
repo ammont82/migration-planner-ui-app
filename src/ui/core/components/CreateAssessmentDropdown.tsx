@@ -66,7 +66,7 @@ const CreateAssessmentDropdown: React.FC<Props> = ({
             onSelectRvtools();
           }}
         >
-          From RVTools (XLS/X)
+          From RVTools (XLS/XLSX)
         </DropdownItem>
       </DropdownList>
     </Dropdown>

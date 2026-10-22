@@ -8,6 +8,7 @@ import React, { useCallback, useMemo, useState } from "react";
 
 import { ALL_CLUSTERS_ID } from "../helpers/clusterViewModel";
 import { extractScopedInventoryData } from "../helpers/groupInventoryFilter";
+import { computeClusterSelectDisabled } from "../helpers/groupViewModel";
 import {
   buildClusterViewModel,
   type ClusterViewModel,
@@ -113,7 +114,11 @@ export function useExampleReportViewModel(): ExampleReportVM {
   const clusterCount = fullInventory.clusters
     ? Object.keys(fullInventory.clusters).length
     : 0;
-  const clusterSelectDisabled = clusterView.clusterOptions.length <= 1;
+  const clusterSelectDisabled = computeClusterSelectDisabled(
+    clusterView.clusterOptions.length,
+    groupView.showGroupFilter,
+    selectedGroupId,
+  );
 
   const exampleSizing = useMemo(
     () => EXAMPLE_SIZING_MAP[selectedClusterId] ?? null,

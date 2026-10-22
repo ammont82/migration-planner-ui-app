@@ -44,6 +44,13 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => vi.fn(),
 }));
 
+vi.mock(
+  "../../../assessment/views/create-rvtools/CreateRvtoolsAssessmentModal",
+  () => ({
+    default: (): null => null,
+  }),
+);
+
 // Mock child components
 vi.mock("../ExportReportButton", () => ({
   ExportReportButton: ({
@@ -221,11 +228,29 @@ function makeBaseVm(
     isPartner: false,
     missingMetrics: [],
     hasMissingMetrics: false,
+    vcenterInventoryLoadError: undefined,
+    clusterInventoryLoadError: undefined,
+    rvtoolsModalMode: "create",
     isRvtoolsModalOpen: false,
     openRvtoolsModal: vi.fn(),
+    openAppendRvtoolsModal: vi.fn(),
     closeRvtoolsModal: vi.fn(),
     createRVToolsJob: vi.fn(),
+    appendRvtoolsFiles: vi.fn(),
     cancelRVToolsJob: vi.fn(),
+    rvtoolsAppendSuccessMessage: null,
+    dismissRvtoolsAppendSuccess: vi.fn(),
+    removeRvtoolsUploadResult: vi.fn(),
+    canAppendRvtoolsFiles: false,
+    rvtoolsPendingUploadBatch: null,
+    isRvtoolsUploadWarningDismissed: false,
+    dismissRvtoolsUploadWarning: vi.fn(),
+    isReviewRvtoolsFailuresOpen: false,
+    setReviewRvtoolsFailuresOpen: vi.fn(),
+    openAppendRvtoolsFromErrorReview: vi.fn(),
+    rvtoolsRemainingFileSlots: 10,
+    rvtoolsAppendNotice: null,
+    dismissRvtoolsAppendNotice: vi.fn(),
     isCreatingJob: false,
     jobCreateError: undefined,
     isJobProcessing: false,
@@ -505,6 +530,41 @@ describe("Report", () => {
   });
 
   describe("Export report button", () => {
+    it("shows an enabled export button on the all-clusters view when export is allowed", async () => {
+      const clusterData = {
+        "Cluster A": { infra: createInfra(2, 2), vms: createVMs(5) },
+      };
+      const clusterView = buildClusterViewModel({
+        infra: clusterData["Cluster A"].infra,
+        vms: clusterData["Cluster A"].vms,
+        clusters: clusterData,
+        selectedClusterId: ALL_CLUSTERS_ID,
+      });
+
+      mockVm = makeBaseVm({
+        assessment: {
+          id: "assessment-1",
+          name: "Assessment 1",
+          sourceId: "source-1",
+        },
+        clusterView,
+        selectedClusterId: ALL_CLUSTERS_ID,
+        clusters: clusterData,
+        canExportReport: true,
+      });
+
+      render(<Report />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("app-page")).toBeInTheDocument();
+      });
+
+      const downloadButton = within(
+        screen.getByTestId("header-actions"),
+      ).getByTestId("download-button");
+      expect(downloadButton).toHaveAttribute("data-disabled", "false");
+    });
+
     it("enables export button when cluster has both hosts and VMs", async () => {
       const clusterData = {
         "Cluster A": { infra: createInfra(2, 2), vms: createVMs(5) },
@@ -587,6 +647,34 @@ describe("Report", () => {
       const downloadButton =
         within(headerActions).getByTestId("download-button");
       expect(downloadButton).toHaveAttribute("data-disabled", "true");
+    });
+  });
+
+  describe("RVTools file append", () => {
+    it("shows a success alert after files are appended to the assessment", async () => {
+      mockVm = makeBaseVm({
+        assessment: {
+          id: "assessment-1",
+          name: "Assessment 1",
+          sourceId: "source-1",
+          sourceType: "rvtools",
+        },
+        canAppendRvtoolsFiles: true,
+        rvtoolsAppendSuccessMessage:
+          "RVTools files were added. Report metrics have been updated.",
+      });
+
+      render(<Report />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("app-page")).toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(
+          "RVTools files were added. Report metrics have been updated.",
+        ),
+      ).toBeInTheDocument();
     });
   });
 });

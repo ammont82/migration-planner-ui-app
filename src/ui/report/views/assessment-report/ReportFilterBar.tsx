@@ -15,10 +15,6 @@ import type { ClusterViewModel } from "../../helpers/clusterViewModel";
 import type { GroupViewModel } from "../../helpers/groupViewModel";
 import type { ClusterOption } from "./ClusterView";
 
-const filterToggleStyle = css`
-  min-width: 422px;
-`;
-
 const filterBarStyle = css`
   align-items: center;
 `;
@@ -56,42 +52,6 @@ export const ReportFilterBar: React.FC<ReportFilterBarProps> = ({
   groupFilterComingSoon = false,
 }) => (
   <Split hasGutter className={filterBarStyle}>
-    <SplitItem>
-      <Select
-        isScrollable
-        isOpen={isClusterSelectOpen}
-        selected={clusterView.selectionId}
-        onSelect={onClusterSelect}
-        onOpenChange={(isOpen: boolean) => {
-          if (!clusterSelectDisabled) {
-            onClusterSelectOpenChange(isOpen);
-          }
-        }}
-        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-          <MenuToggle
-            ref={toggleRef}
-            isExpanded={isClusterSelectOpen}
-            onClick={() => {
-              if (!clusterSelectDisabled) {
-                onClusterSelectOpenChange(!isClusterSelectOpen);
-              }
-            }}
-            isDisabled={clusterSelectDisabled}
-            className={filterToggleStyle}
-          >
-            Filter by cluster: {clusterView.selectionLabel}
-          </MenuToggle>
-        )}
-      >
-        <SelectList>
-          {clusterView.clusterOptions.map((option: ClusterOption) => (
-            <SelectOption key={option.id} value={option.id}>
-              {option.label}
-            </SelectOption>
-          ))}
-        </SelectList>
-      </Select>
-    </SplitItem>
     {groupView.showGroupFilter ? (
       <>
         <SplitItem>
@@ -115,9 +75,8 @@ export const ReportFilterBar: React.FC<ReportFilterBarProps> = ({
                   }
                 }}
                 isDisabled={groupView.groupSelectDisabled}
-                className={filterToggleStyle}
               >
-                Filter by group: {groupView.selectionLabel}
+                Filter by vCenter: {groupView.selectionLabel}
               </MenuToggle>
             )}
           >
@@ -139,6 +98,41 @@ export const ReportFilterBar: React.FC<ReportFilterBarProps> = ({
         ) : null}
       </>
     ) : null}
+    <SplitItem>
+      <Select
+        isScrollable
+        isOpen={isClusterSelectOpen}
+        selected={clusterView.selectionId}
+        onSelect={onClusterSelect}
+        onOpenChange={(isOpen: boolean) => {
+          if (!clusterSelectDisabled) {
+            onClusterSelectOpenChange(isOpen);
+          }
+        }}
+        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+          <MenuToggle
+            ref={toggleRef}
+            isExpanded={isClusterSelectOpen}
+            onClick={() => {
+              if (!clusterSelectDisabled) {
+                onClusterSelectOpenChange(!isClusterSelectOpen);
+              }
+            }}
+            isDisabled={clusterSelectDisabled}
+          >
+            Filter by cluster: {clusterView.selectionLabel}
+          </MenuToggle>
+        )}
+      >
+        <SelectList>
+          {clusterView.clusterOptions.map((option: ClusterOption) => (
+            <SelectOption key={option.id} value={option.id}>
+              {option.label}
+            </SelectOption>
+          ))}
+        </SelectList>
+      </Select>
+    </SplitItem>
   </Split>
 );
 

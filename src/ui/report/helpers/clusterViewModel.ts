@@ -49,6 +49,35 @@ export const compareClustersByVmCount = (
   return vmsB - vmsA || a.localeCompare(b);
 };
 
+export const resolveSelectedClusterId = (
+  userSelectedClusterId: string | null,
+  clusters?: { [key: string]: InventoryData },
+): string => {
+  if (userSelectedClusterId !== null) {
+    const isValidSelection =
+      userSelectedClusterId === ALL_CLUSTERS_ID ||
+      Boolean(
+        clusters &&
+        Object.prototype.hasOwnProperty.call(clusters, userSelectedClusterId),
+      );
+    if (isValidSelection) {
+      return userSelectedClusterId;
+    }
+  }
+
+  const clusterKeys = clusters ? Object.keys(clusters) : [];
+
+  if (clusterKeys.length === 0) {
+    return ALL_CLUSTERS_ID;
+  }
+
+  const sortedKeys = [...clusterKeys].sort((a, b) =>
+    compareClustersByVmCount(a, b, clusters),
+  );
+
+  return sortedKeys[0];
+};
+
 export const getClusterOptions = (clusters?: {
   [key: string]: InventoryData;
 }): ClusterOption[] => {

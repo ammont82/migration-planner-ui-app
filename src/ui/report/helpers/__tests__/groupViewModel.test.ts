@@ -1,7 +1,12 @@
 import type { AssessmentSubsetInventory } from "@openshift-migration-advisor/planner-sdk";
 import { describe, expect, it } from "vitest";
 
-import { buildGroupViewModel } from "../groupViewModel";
+import {
+  ALL_VMS_GROUP_ID,
+  buildGroupViewModel,
+  computeClusterSelectDisabled,
+  getSubsetInventoryLabel,
+} from "../groupViewModel";
 
 const createSubset = (
   overrides: Partial<AssessmentSubsetInventory> = {},
@@ -38,8 +43,8 @@ describe("buildGroupViewModel", () => {
     expect(model.showGroupFilter).toBe(true);
     expect(model.groupOptions).toEqual([
       { id: "all", label: "All VMs" },
-      { id: "group-1", label: "Group 1 (350 VMs)" },
-      { id: "group-2", label: "Group 2 (180 VMs)" },
+      { id: "group-1", label: "Group (350 VMs)" },
+      { id: "group-2", label: "Group (180 VMs)" },
     ]);
   });
 
@@ -51,6 +56,72 @@ describe("buildGroupViewModel", () => {
 
     expect(model.selectionId).toBe("all");
     expect(model.selectionLabel).toBe("All VMs");
+  });
+
+  it("uses vCenter labels when labelMode is vcenter", () => {
+    const model = buildGroupViewModel({
+      labelMode: "vcenter",
+      subsetInventories: [
+        createSubset({ id: "group-1", name: "Group 1", vmsCount: 350 }),
+      ],
+    });
+
+    expect(model.groupOptions[0].label).toBe("All vCenters");
+    expect(model.groupOptions[1].label).toBe("Group 1");
+  });
+});
+
+describe("getSubsetInventoryLabel", () => {
+  it("uses the subset name when present", () => {
+    expect(
+      getSubsetInventoryLabel({
+        ...createSubset({ name: "VC East" }),
+      }),
+    ).toBe("VC East");
+  });
+
+  it("falls back to vCenter version when name is empty", () => {
+    expect(
+      getSubsetInventoryLabel({
+        ...createSubset({ name: "" }),
+        inventory: {
+          vcenterId: "502d878c-af91-4a6f-93e9-61c4a1986172",
+          vcenterVersion: "8.0.3.0",
+          clusters: {},
+        },
+      }),
+    ).toBe("vCenter 8.0.3.0");
+  });
+
+  it("falls back to vcenterId when name and version are missing", () => {
+    expect(
+      getSubsetInventoryLabel({
+        ...createSubset({ name: "  " }),
+        vcenterId: "502d878c-af91-4a6f-93e9-61c4a1986172",
+        inventory: {
+          vcenterId: "502d878c-af91-4a6f-93e9-61c4a1986172",
+          clusters: {},
+        },
+      }),
+    ).toBe("502d878c-af91-4a6f-93e9-61c4a1986172");
+  });
+});
+
+describe("computeClusterSelectDisabled", () => {
+  it("disables when there is at most one cluster option", () => {
+    expect(computeClusterSelectDisabled(1, false, ALL_VMS_GROUP_ID)).toBe(true);
+    expect(computeClusterSelectDisabled(0, false, ALL_VMS_GROUP_ID)).toBe(true);
+  });
+
+  it("disables when all vCenters are selected and the group filter is shown", () => {
+    expect(computeClusterSelectDisabled(3, true, ALL_VMS_GROUP_ID)).toBe(true);
+    expect(computeClusterSelectDisabled(3, true, "group-1")).toBe(false);
+  });
+
+  it("allows cluster selection when the group filter is hidden", () => {
+    expect(computeClusterSelectDisabled(3, false, ALL_VMS_GROUP_ID)).toBe(
+      false,
+    );
   });
 
   it("uses distinct select values when a subset id collides with All VMs", () => {
@@ -71,6 +142,6 @@ describe("buildGroupViewModel", () => {
       "subset:all",
       "group-2",
     ]);
-    expect(model.groupOptions[1].label).toBe("Empty Group (12 VMs)");
+    expect(model.groupOptions[1].label).toBe("Group (12 VMs)");
   });
 });

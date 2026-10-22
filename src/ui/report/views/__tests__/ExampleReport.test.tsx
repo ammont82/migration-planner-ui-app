@@ -94,7 +94,7 @@ describe("ExampleReport", () => {
   it("marks the group filter as coming soon", () => {
     render(<ExampleReport />);
 
-    expect(screen.getByText(/Filter by group:/)).toBeInTheDocument();
+    expect(screen.getByText(/Filter by vCenter:/)).toBeInTheDocument();
     expect(screen.getByText("Coming soon")).toBeInTheDocument();
   });
 

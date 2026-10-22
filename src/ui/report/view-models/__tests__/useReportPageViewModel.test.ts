@@ -12,6 +12,7 @@ import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { IdentityView } from "../../../../data/stores/interfaces/IAccountStore";
+import { RvtoolsReportPersistenceStore } from "../../../../data/stores/RvtoolsReportPersistenceStore";
 import {
   createSourceModel,
   type SourceModel,
@@ -70,6 +71,17 @@ const mockAssessmentsStore = {
   getSnapshot: vi.fn((): Assessment[] => []),
   list: vi.fn().mockResolvedValue([]),
   get: vi.fn().mockResolvedValue(undefined),
+  getVcenter: vi.fn().mockResolvedValue({
+    data: {
+      id: "vc-1",
+      data: { infra: { totalHosts: 1 }, vms: { total: 2 } },
+    },
+    clusters: [{ id: "cluster-1" }],
+  }),
+  getVcenterCluster: vi.fn().mockResolvedValue({
+    infra: { totalHosts: 1 },
+    vms: { total: 2 },
+  }),
   getById: vi.fn(),
   startPolling: vi.fn(),
   stopPolling: vi.fn(),
@@ -105,6 +117,8 @@ const mockAccountStore = {
   getSnapshot: vi.fn((): IdentityView | null => null),
 };
 
+const mockPersistenceStore = new RvtoolsReportPersistenceStore();
+
 vi.mock("@openshift-migration-advisor/ioc", () => ({
   useInjection: vi.fn((symbol: symbol) => {
     const key = symbol.description;
@@ -112,6 +126,7 @@ vi.mock("@openshift-migration-advisor/ioc", () => ({
     if (key === "SourcesStore") return mockSourcesStore;
     if (key === "JobsStore") return mockJobsStore;
     if (key === "AccountStore") return mockAccountStore;
+    if (key === "RvtoolsReportPersistenceStore") return mockPersistenceStore;
     throw new Error(`Unknown symbol: ${String(symbol)}`);
   }),
 }));
@@ -494,6 +509,26 @@ describe("useReportPageViewModel", () => {
       const { result } = renderHook(() => useReportPageViewModel());
       expect(result.current.canExportReport).toBe(false);
     });
+
+    it("canExportReport is true on aggregate view when per-cluster inventory is exportable", () => {
+      const assessment = createAssessment("assessment-1", {
+        "Cluster-A": { infra: createInfra(2, 2), vms: createVMs(5) },
+      });
+      const snapshot = assessment.snapshots?.[0];
+      if (snapshot?.inventory?.vcenter) {
+        snapshot.inventory.vcenter = {
+          infra: createInfra(0, 0),
+          vms: createVMs(0),
+        };
+      }
+      mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
+
+      const { result } = renderHook(() => useReportPageViewModel());
+      act(() => {
+        result.current.selectCluster(ALL_CLUSTERS_ID);
+      });
+      expect(result.current.canExportReport).toBe(true);
+    });
   });
 
   describe("export", () => {
@@ -552,7 +587,7 @@ describe("useReportPageViewModel", () => {
         result.current.selectGroup("group-1");
       });
 
-      expect(result.current.exportDocumentTitle).toContain("Group 1");
+      expect(result.current.exportDocumentTitle).toContain("Group (3 VMs)");
     });
 
     it("stores sizing results by cluster id", () => {
@@ -940,6 +975,54 @@ describe("useReportPageViewModel", () => {
       const { result } = renderHook(() => useReportPageViewModel());
       expect(result.current.clusterSelectDisabled).toBe(false);
     });
+
+    it("returns true when group filter is shown and all vCenters are selected", () => {
+      const assessment = createAssessment("assessment-1", {
+        "Cluster-A": { infra: createInfra(2, 2), vms: createVMs(5) },
+        "Cluster-B": { infra: createInfra(3, 3), vms: createVMs(7) },
+      });
+      assessment.snapshots = [
+        {
+          createdAt: new Date(),
+          inventory: assessment.snapshots?.[0]?.inventory ?? {
+            vcenterId: "vcenter-1",
+            clusters: {},
+          },
+          subsetInventories: [
+            {
+              id: "group-1",
+              name: "VC 1",
+              vcenterId: "vcenter-1",
+              vmsCount: 5,
+              createdAt: new Date(),
+              inventory: {
+                vcenterId: "vcenter-1",
+                clusters: {
+                  "Cluster-A": {
+                    infra: createInfra(2, 2),
+                    vms: createVMs(5),
+                  },
+                  "Cluster-B": {
+                    infra: createInfra(3, 3),
+                    vms: createVMs(7),
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ];
+      mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
+
+      const { result } = renderHook(() => useReportPageViewModel());
+      expect(result.current.selectedGroupId).toBe(ALL_VMS_GROUP_ID);
+      expect(result.current.clusterSelectDisabled).toBe(true);
+
+      act(() => {
+        result.current.selectGroup("group-1");
+      });
+      expect(result.current.clusterSelectDisabled).toBe(false);
+    });
   });
 
   describe("group selection", () => {
@@ -995,7 +1078,7 @@ describe("useReportPageViewModel", () => {
       expect(result.current.groupView.showGroupFilter).toBe(true);
       expect(result.current.groupView.groupOptions).toHaveLength(2);
       expect(result.current.groupView.groupOptions[1].label).toBe(
-        "Group 1 (3 VMs)",
+        "Group (3 VMs)",
       );
 
       act(() => {
@@ -1007,7 +1090,46 @@ describe("useReportPageViewModel", () => {
       expect(result.current.reportSummaryVms?.total).toBe(10);
     });
 
-    it("hides group filter for RVTools assessments even when subset inventories exist", () => {
+    it("shows vCenter filter for multi-vCenter RVTools assessments", () => {
+      const assessment = createAssessment("assessment-1", {
+        "Cluster-A": { infra: createInfra(2, 2), vms: createVMs(10) },
+      });
+      assessment.sourceType = "rvtools";
+      assessment.snapshots = [
+        {
+          createdAt: new Date(),
+          inventory: assessment.snapshots?.[0]?.inventory ?? {
+            vcenterId: "vcenter-1",
+            clusters: {},
+          },
+          subsetInventories: [
+            {
+              id: "group-1",
+              name: "My RVTools assessment",
+              vcenterId: "vcenter-1",
+              vmsCount: 10,
+              createdAt: new Date(),
+              inventory: assessment.snapshots?.[0]?.inventory,
+            },
+            {
+              id: "group-2",
+              name: "Second VC",
+              vcenterId: "vcenter-2",
+              vmsCount: 5,
+              createdAt: new Date(),
+              inventory: assessment.snapshots?.[0]?.inventory,
+            },
+          ],
+        },
+      ];
+      mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
+
+      const { result } = renderHook(() => useReportPageViewModel());
+      expect(result.current.groupView.showGroupFilter).toBe(true);
+      expect(result.current.groupView.groupOptions.length).toBeGreaterThan(1);
+    });
+
+    it("hides group filter for single-vCenter RVTools assessments", () => {
       const assessment = createAssessment("assessment-1", {
         "Cluster-A": { infra: createInfra(2, 2), vms: createVMs(10) },
       });
@@ -1067,6 +1189,130 @@ describe("useReportPageViewModel", () => {
       mockAssessmentsStore.getSnapshot.mockReturnValue([]);
       const { result } = renderHook(() => useReportPageViewModel());
       expect(result.current.clusterCount).toBe(0);
+    });
+  });
+
+  describe("RVTools v2 inventory scope", () => {
+    it("loads vCenter inventory from the v2 API when a single vCenter exists", async () => {
+      const assessment = createAssessment("assessment-1");
+      assessment.sourceType = "rvtools";
+      assessment.snapshots = [
+        {
+          createdAt: new Date(),
+          inventory: {
+            vcenterId: "aggregate",
+            vcenter: {
+              infra: createInfra(5, 5),
+              vms: createVMs(10),
+            },
+            clusters: {},
+          },
+          subsetInventories: [
+            {
+              id: "group-1",
+              name: "VC 1",
+              vcenterId: "vc-api-1",
+              vmsCount: 2,
+              createdAt: new Date(),
+              inventory: {
+                vcenterId: "vc-api-1",
+                clusters: {},
+              },
+            },
+          ],
+        },
+      ];
+      mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
+      mockAssessmentsStore.getVcenter.mockResolvedValue({
+        data: {
+          id: "vc-api-1",
+          data: {
+            infra: createInfra(2, 2),
+            vms: createVMs(2),
+          },
+        },
+        clusters: [{ id: "domain-c1" }],
+      });
+
+      renderHook(() => useReportPageViewModel());
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockAssessmentsStore.getVcenter).toHaveBeenCalledWith(
+        "assessment-1",
+        "vc-api-1",
+      );
+    });
+
+    it("loads vCenter inventory from the v2 API when a vCenter is selected", async () => {
+      const assessment = createAssessment("assessment-1");
+      assessment.sourceType = "rvtools";
+      assessment.snapshots = [
+        {
+          createdAt: new Date(),
+          inventory: {
+            vcenterId: "aggregate",
+            vcenter: {
+              infra: createInfra(5, 5),
+              vms: createVMs(10),
+            },
+            clusters: {},
+          },
+          subsetInventories: [
+            {
+              id: "group-1",
+              name: "VC 1",
+              vcenterId: "vc-api-1",
+              vmsCount: 2,
+              createdAt: new Date(),
+              inventory: {
+                vcenterId: "vc-api-1",
+                clusters: {},
+              },
+            },
+            {
+              id: "group-2",
+              name: "VC 2",
+              vcenterId: "vc-api-2",
+              vmsCount: 3,
+              createdAt: new Date(),
+              inventory: {
+                vcenterId: "vc-api-2",
+                clusters: {},
+              },
+            },
+          ],
+        },
+      ];
+      mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
+      mockAssessmentsStore.getVcenter.mockResolvedValue({
+        data: {
+          id: "vc-api-2",
+          data: {
+            infra: createInfra(2, 2),
+            vms: createVMs(2),
+          },
+        },
+        clusters: [{ id: "domain-c1" }],
+      });
+
+      const { result } = renderHook(() => useReportPageViewModel());
+
+      act(() => {
+        result.current.selectGroup("group-2");
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockAssessmentsStore.getVcenter).toHaveBeenCalledWith(
+        "assessment-1",
+        "vc-api-2",
+      );
+      expect(result.current.vms?.total).toBe(2);
     });
   });
 });

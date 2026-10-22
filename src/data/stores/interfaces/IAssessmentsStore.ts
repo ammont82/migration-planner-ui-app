@@ -1,4 +1,5 @@
 import type {
+  AssessmentVCenterV2,
   CalculateAssessmentClusterRequirementsRequest,
   CalculateMigrationComplexityRequest,
   CalculateMigrationEstimationByComplexityRequest,
@@ -8,6 +9,7 @@ import type {
   EnhancementData,
   GetAssessmentClusterRequirementsStoredInputRequest,
   InitOverrideFunction,
+  InventoryData,
   MigrationComplexityResponse,
   MigrationEstimationByComplexityResponse,
   MigrationEstimationResponse,
@@ -38,6 +40,17 @@ export interface IAssessmentsStore extends ExternalStore<AssessmentModel[]> {
     id: string,
     initOverrides?: RequestInit | InitOverrideFunction,
   ): Promise<AssessmentModel>;
+  getVcenter(
+    id: string,
+    vid: string,
+    initOverrides?: RequestInit | InitOverrideFunction,
+  ): Promise<AssessmentVCenterV2>;
+  getVcenterCluster(
+    id: string,
+    vid: string,
+    cid: string,
+    initOverrides?: RequestInit | InitOverrideFunction,
+  ): Promise<InventoryData>;
   getById(id: string): AssessmentModel | undefined;
   getEnhancementData(
     id: string,

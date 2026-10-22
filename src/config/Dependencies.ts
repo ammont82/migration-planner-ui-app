@@ -22,6 +22,7 @@ import { JobsStore } from "../data/stores/JobsStore";
 import { PartnerRequestsStore } from "../data/stores/PartnerRequestsStore";
 import { PartnersStore } from "../data/stores/PartnersStore";
 import { ReportStore } from "../data/stores/ReportStore";
+import { RvtoolsReportPersistenceStore } from "../data/stores/RvtoolsReportPersistenceStore";
 import { SizingStore } from "../data/stores/SizingStore";
 import { SourcesStore } from "../data/stores/SourcesStore";
 import { StandaloneCostEstimationStore } from "../data/stores/StandaloneCostEstimationStore";
@@ -47,6 +48,7 @@ export const Symbols = Object.freeze({
   CustomersStore: Symbol.for("CustomersStore"),
   SizingStore: Symbol.for("SizingStore"),
   StandaloneCostEstimationStore: Symbol.for("StandaloneCostEstimationStore"),
+  RvtoolsReportPersistenceStore: Symbol.for("RvtoolsReportPersistenceStore"),
 });
 
 export const createContainer = (auth: ChromeAPI["auth"]): Container => {
@@ -73,6 +75,10 @@ export const createContainer = (auth: ChromeAPI["auth"]): Container => {
   c.register(Symbols.VersionsStore, new VersionsStore(infoApi));
   c.register(Symbols.SourcesStore, new SourcesStore(sourceApi));
   c.register(Symbols.JobsStore, new JobsStore(jobApi));
+  c.register(
+    Symbols.RvtoolsReportPersistenceStore,
+    new RvtoolsReportPersistenceStore(),
+  );
   c.register(Symbols.GroupsStore, new GroupsStore(accountApi));
   c.register(Symbols.GroupMembersStore, new GroupMembersStore(accountApi));
   c.register(Symbols.PartnersStore, new PartnersStore(partnerApi));

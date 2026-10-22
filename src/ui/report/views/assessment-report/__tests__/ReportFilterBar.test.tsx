@@ -42,14 +42,28 @@ describe("ReportFilterBar", () => {
   it("shows the group filter without a coming soon badge by default", () => {
     render(<ReportFilterBar {...defaultProps} />);
 
-    expect(screen.getByText(/Filter by group:/)).toBeInTheDocument();
+    expect(screen.getByText(/Filter by vCenter:/)).toBeInTheDocument();
     expect(screen.queryByText("Coming soon")).not.toBeInTheDocument();
+  });
+
+  it("renders vCenter filter before cluster filter", () => {
+    render(<ReportFilterBar {...defaultProps} />);
+
+    const toggles = screen.getAllByRole("button");
+    const vCenterIndex = toggles.findIndex((node) =>
+      node.textContent?.includes("Filter by vCenter:"),
+    );
+    const clusterIndex = toggles.findIndex((node) =>
+      node.textContent?.includes("Filter by cluster:"),
+    );
+    expect(vCenterIndex).toBeGreaterThanOrEqual(0);
+    expect(clusterIndex).toBeGreaterThan(vCenterIndex);
   });
 
   it("shows a coming soon badge next to the group filter when requested", () => {
     render(<ReportFilterBar {...defaultProps} groupFilterComingSoon />);
 
-    expect(screen.getByText(/Filter by group:/)).toBeInTheDocument();
+    expect(screen.getByText(/Filter by vCenter:/)).toBeInTheDocument();
     expect(screen.getByText("Coming soon")).toBeInTheDocument();
   });
 });

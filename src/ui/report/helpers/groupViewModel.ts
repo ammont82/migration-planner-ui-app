@@ -28,6 +28,8 @@ export const fromGroupOptionId = (optionId: string): string => {
   return rest === EMPTY_SUBSET_ID_TOKEN ? "" : rest;
 };
 
+export type GroupLabelMode = "discovery" | "vcenter";
+
 export type GroupOption = { id: string; label: string };
 
 export type GroupViewModel = {
@@ -38,21 +40,53 @@ export type GroupViewModel = {
   groupSelectDisabled: boolean;
 };
 
+/** RVTools subsets often ship with an empty `name`; use version or vCenter id for the filter label. */
+export const getSubsetInventoryLabel = (
+  subset: AssessmentSubsetInventory,
+): string => {
+  const name = subset.name?.trim();
+  if (name) {
+    return name;
+  }
+
+  const inventory = subset.inventory as
+    { vcenterVersion?: string; vcenter_version?: string } | undefined;
+  const version =
+    inventory?.vcenterVersion?.trim() || inventory?.vcenter_version?.trim();
+  if (version) {
+    return `vCenter ${version}`;
+  }
+
+  const vcenterId = subset.vcenterId?.trim();
+  if (vcenterId) {
+    return vcenterId;
+  }
+
+  return subset.id;
+};
+
 export const buildGroupViewModel = ({
   subsetInventories,
   selectedGroupId = ALL_VMS_GROUP_ID,
+  labelMode = "discovery",
 }: {
   subsetInventories?: AssessmentSubsetInventory[];
   selectedGroupId?: string;
+  labelMode?: GroupLabelMode;
 }): GroupViewModel => {
   const subsets = subsetInventories ?? [];
   const showGroupFilter = subsets.length > 0;
 
+  const allOptionLabel = labelMode === "vcenter" ? "All vCenters" : "All VMs";
+
   const groupOptions: GroupOption[] = [
-    { id: ALL_VMS_GROUP_ID, label: "All VMs" },
+    { id: ALL_VMS_GROUP_ID, label: allOptionLabel },
     ...subsets.map((subset) => ({
       id: toGroupOptionId(subset.id),
-      label: `${subset.name} (${subset.vmsCount} VMs)`,
+      label:
+        labelMode === "vcenter"
+          ? getSubsetInventoryLabel(subset)
+          : `Group (${subset.vmsCount ?? 0} VMs)`,
     })),
   ];
 
@@ -75,4 +109,19 @@ export const buildGroupViewModel = ({
     showGroupFilter,
     groupSelectDisabled: !showGroupFilter,
   };
+};
+
+/** Cluster filter is only meaningful after a specific vCenter is selected. */
+export const computeClusterSelectDisabled = (
+  clusterOptionCount: number,
+  showGroupFilter: boolean,
+  selectedGroupId: string,
+): boolean => {
+  if (clusterOptionCount <= 1) {
+    return true;
+  }
+  if (showGroupFilter && selectedGroupId === ALL_VMS_GROUP_ID) {
+    return true;
+  }
+  return false;
 };
