@@ -7,9 +7,15 @@ import type {
   VMs,
 } from "@openshift-migration-advisor/planner-sdk";
 import type { PdfTextPage } from "@openshift-migration-advisor/shared-components";
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { useAsyncFn, useMount } from "react-use";
+import { useAsyncFn } from "react-use";
 
 import { Symbols } from "../../../config/Dependencies";
 import type { IAssessmentsStore } from "../../../data/stores/interfaces/IAssessmentsStore";
@@ -404,9 +410,9 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
     await Promise.all([assessmentsStore.list(), sourcesPromise]);
   }, [assessmentsStore, sourcesStore, id]);
 
-  useMount(() => {
+  useEffect(() => {
     void doFetchData();
-  });
+  }, [doFetchData, id]);
 
   // ---- Assessment lookup ---------------------------------------------------
   const assessment = useMemo(
@@ -434,6 +440,15 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
   const [savedSizingDataMap, setSavedSizingDataMap] = useState<
     Record<string, SizingPdfData>
   >({});
+  const [boundReportAssessmentId, setBoundReportAssessmentId] = useState(id);
+
+  if (boundReportAssessmentId !== id) {
+    setBoundReportAssessmentId(id);
+    setUserSelectedClusterId(null);
+    setIsClusterSelectOpen(false);
+    setSelectedRecommendationTool(null);
+    setSavedSizingDataMap({});
+  }
 
   const onSizingCalculated = useCallback((data: SizingPdfData): void => {
     setSavedSizingDataMap((prev) => ({ ...prev, [data.clusterId]: data }));

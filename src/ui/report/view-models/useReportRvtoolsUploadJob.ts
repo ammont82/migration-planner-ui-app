@@ -245,7 +245,7 @@ export const useReportRvtoolsUploadJob = ({
     async (targetAssessmentId: string) => {
       try {
         recordRvtoolsUploadOutcome(targetAssessmentId, "created");
-        await assessmentsStore.list();
+        await assessmentsStore.get(targetAssessmentId);
         setIsRvtoolsModalOpen(false);
         void navigate(routes.assessmentReport(targetAssessmentId));
       } finally {

@@ -235,7 +235,7 @@ export const useAssessmentPageViewModel = (): AssessmentPageViewModel => {
             "created",
           );
         }
-        await assessmentsStore.list();
+        await assessmentsStore.get(assessmentId);
         void navigate(routes.assessmentReport(assessmentId));
       } finally {
         isNavigatingRef.current = false;

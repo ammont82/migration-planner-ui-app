@@ -50,6 +50,13 @@ export const useReportV2InventoryScope = ({
   >();
   const [vcenterLoadError, setVcenterLoadError] = useState<Error | undefined>();
   const [clusterLoadError, setClusterLoadError] = useState<Error | undefined>();
+  const [loadedForAssessmentId, setLoadedForAssessmentId] = useState<
+    string | undefined
+  >();
+
+  const scopeMatchesAssessment = Boolean(
+    assessmentId && loadedForAssessmentId === assessmentId,
+  );
 
   const selectedVcenterId = useMemo(() => {
     if (!enabled) {
@@ -71,6 +78,7 @@ export const useReportV2InventoryScope = ({
         if (!cancelled) {
           setVcenterResponse(response);
           setLoadedVcenterId(selectedVcenterId);
+          setLoadedForAssessmentId(assessmentId);
           setLoadedClusters({});
           setClustersVcenterId(selectedVcenterId);
           setVcenterLoadError(undefined);
@@ -83,6 +91,7 @@ export const useReportV2InventoryScope = ({
           );
           setVcenterResponse(undefined);
           setLoadedVcenterId(selectedVcenterId);
+          setLoadedForAssessmentId(assessmentId);
           setLoadedClusters({});
           setClustersVcenterId(selectedVcenterId);
         }
@@ -94,7 +103,9 @@ export const useReportV2InventoryScope = ({
   }, [assessmentsStore, assessmentId, enabled, selectedVcenterId]);
 
   const vcenterMatchesSelection =
-    Boolean(selectedVcenterId) && loadedVcenterId === selectedVcenterId;
+    scopeMatchesAssessment &&
+    Boolean(selectedVcenterId) &&
+    loadedVcenterId === selectedVcenterId;
 
   const clustersForSelection = useMemo(() => {
     if (!vcenterResponse || !vcenterMatchesSelection) {
@@ -159,7 +170,8 @@ export const useReportV2InventoryScope = ({
   ]);
 
   const vcenterInventoryLoading = Boolean(
-    selectedVcenterId && loadedVcenterId !== selectedVcenterId,
+    selectedVcenterId &&
+    (!scopeMatchesAssessment || loadedVcenterId !== selectedVcenterId),
   );
 
   const clusterInventoryLoading = Boolean(
@@ -201,7 +213,7 @@ export const useReportV2InventoryScope = ({
   return {
     activeInventory,
     inventoryLoading,
-    vcenterLoadError,
-    clusterLoadError,
+    vcenterLoadError: scopeMatchesAssessment ? vcenterLoadError : undefined,
+    clusterLoadError: scopeMatchesAssessment ? clusterLoadError : undefined,
   };
 };
