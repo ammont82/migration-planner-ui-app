@@ -1,4 +1,3 @@
-import { css } from "@emotion/css";
 import {
   ChartExportProvider,
   useChartExport,
@@ -6,6 +5,7 @@ import {
 import {
   Alert,
   AlertActionCloseButton,
+  AlertGroup,
   Bullseye,
   Button,
   Content,
@@ -44,12 +44,6 @@ import { MigrationRecommendations } from "./migration-recommendations/MigrationR
 import { MANUAL_ENVIRONMENT_DETAILS_TAB } from "./migration-recommendations/types";
 import { RvtoolsUploadWarning } from "./rvtools/RvtoolsUploadWarning";
 
-const pageAlertsStackStyle = css`
-  display: flex;
-  flex-direction: column;
-  gap: var(--pf-t--global--spacer--md);
-`;
-
 const ReportContent: React.FC = () => {
   const vm = useReportPageViewModel();
   const charts = useChartExport();
@@ -60,29 +54,8 @@ const ReportContent: React.FC = () => {
     dismissRvtoolsAppendNotice,
   } = vm;
 
-  React.useEffect(() => {
-    if (!rvtoolsAppendSuccessMessage) {
-      return;
-    }
-    const timeoutId = window.setTimeout(() => {
-      dismissRvtoolsAppendSuccess();
-    }, 6000);
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [dismissRvtoolsAppendSuccess, rvtoolsAppendSuccessMessage]);
-
-  React.useEffect(() => {
-    if (!rvtoolsAppendNotice) {
-      return;
-    }
-    const timeoutId = window.setTimeout(() => {
-      dismissRvtoolsAppendNotice();
-    }, 8000);
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [dismissRvtoolsAppendNotice, rvtoolsAppendNotice]);
+  const showRvtoolsAppendToast =
+    Boolean(rvtoolsAppendSuccessMessage) || Boolean(rvtoolsAppendNotice);
 
   if (vm.isInitialLoading) {
     return (
@@ -139,8 +112,43 @@ const ReportContent: React.FC = () => {
     ? "Export is unavailable because this assessment has no VMs with host inventory."
     : "Export is unavailable because this cluster has no VMs.";
 
+  const hasTopPageAlerts =
+    Boolean(vm.vcenterInventoryLoadError) ||
+    Boolean(vm.clusterInventoryLoadError) ||
+    Boolean(charts?.exportError);
+
   return (
     <>
+      {showRvtoolsAppendToast ? (
+        <AlertGroup
+          isToast
+          isLiveRegion
+          aria-label="RVTools file upload notifications"
+        >
+          {rvtoolsAppendSuccessMessage ? (
+            <Alert
+              variant="success"
+              title={rvtoolsAppendSuccessMessage}
+              timeout={6000}
+              onTimeout={dismissRvtoolsAppendSuccess}
+              actionClose={
+                <AlertActionCloseButton onClose={dismissRvtoolsAppendSuccess} />
+              }
+            />
+          ) : null}
+          {rvtoolsAppendNotice ? (
+            <Alert
+              variant={rvtoolsAppendNotice.variant}
+              title={rvtoolsAppendNotice.message}
+              timeout={8000}
+              onTimeout={dismissRvtoolsAppendNotice}
+              actionClose={
+                <AlertActionCloseButton onClose={dismissRvtoolsAppendNotice} />
+              }
+            />
+          ) : null}
+        </AlertGroup>
+      ) : null}
       <AppPage
         breadcrumbs={[
           {
@@ -183,24 +191,6 @@ const ReportContent: React.FC = () => {
                 ? `Last updated: ${vm.lastUpdatedText}`
                 : "[Last updated time stamp]"}
             </StackItem>
-            {vm.assessment.sourceType === "rvtools" &&
-              vm.rvtoolsPendingUploadBatch && (
-                <StackItem>
-                  <RvtoolsUploadWarning
-                    batch={vm.rvtoolsPendingUploadBatch}
-                    failures={vm.rvtoolsPendingUploadBatch.failures}
-                    isDismissed={vm.isRvtoolsUploadWarningDismissed}
-                    onDismiss={vm.dismissRvtoolsUploadWarning}
-                    isErrorReviewOpen={vm.isReviewRvtoolsFailuresOpen}
-                    onErrorReviewOpenChange={vm.setReviewRvtoolsFailuresOpen}
-                    canAddMoreRvtoolsFiles={
-                      vm.canAppendRvtoolsFiles &&
-                      vm.rvtoolsRemainingFileSlots > 0
-                    }
-                    onAddRvtoolsFiles={vm.openAppendRvtoolsFromErrorReview}
-                  />
-                </StackItem>
-              )}
             <StackItem>
               {vm.clusterCount > 0 ? (
                 typeof vm.reportSummaryVms?.total === "number" ? (
@@ -248,89 +238,48 @@ const ReportContent: React.FC = () => {
           </Stack>
         }
         alerts={
-          <div className={pageAlertsStackStyle}>
-            {vm.vcenterInventoryLoadError ? (
-              <Alert
-                variant="danger"
-                isInline
-                title="Could not load vCenter data"
-              >
-                {vm.vcenterInventoryLoadError.message}
-              </Alert>
-            ) : null}
-            {vm.clusterInventoryLoadError ? (
-              <Alert
-                variant="danger"
-                isInline
-                title="Could not load cluster data"
-              >
-                {vm.clusterInventoryLoadError.message}
-              </Alert>
-            ) : null}
-            {vm.hasMissingMetrics && (
-              <Alert
-                variant="warning"
-                isInline
-                title="Limited recommendation: required metrics are missing."
-              >
-                <Stack hasGutter>
-                  <StackItem>
-                    <p>
-                      Add the following to improve accuracy and create a new
-                      assessment:
-                    </p>
-                    <List>
-                      {vm.missingMetrics.map((metric) => (
-                        <ListItem key={metric}>{metric}</ListItem>
-                      ))}
-                    </List>
-                  </StackItem>
-                  <StackItem>
-                    <CreateAssessmentDropdown
-                      toggleLabel="Create a new assessment"
-                      onSelectRvtools={() => vm.openRvtoolsModal()}
-                    />
-                  </StackItem>
-                </Stack>
-              </Alert>
-            )}
-            {charts?.exportError && (
-              <Alert
-                variant="danger"
-                isInline
-                title="Export failed"
-                actionClose={
-                  <AlertActionCloseButton onClose={charts.clearExportError} />
-                }
-              >
-                <p>{charts.exportError}</p>
-              </Alert>
-            )}
-            {vm.rvtoolsAppendSuccessMessage && (
-              <Alert
-                variant="success"
-                isInline
-                title={vm.rvtoolsAppendSuccessMessage}
-                actionClose={
-                  <AlertActionCloseButton
-                    onClose={vm.dismissRvtoolsAppendSuccess}
-                  />
-                }
-              />
-            )}
-            {vm.rvtoolsAppendNotice && (
-              <Alert
-                variant={vm.rvtoolsAppendNotice.variant}
-                isInline
-                title={vm.rvtoolsAppendNotice.message}
-                actionClose={
-                  <AlertActionCloseButton
-                    onClose={vm.dismissRvtoolsAppendNotice}
-                  />
-                }
-              />
-            )}
-          </div>
+          hasTopPageAlerts ? (
+            <Stack hasGutter>
+              {vm.vcenterInventoryLoadError ? (
+                <StackItem>
+                  <Alert
+                    variant="danger"
+                    isInline
+                    title="Could not load vCenter data"
+                  >
+                    {vm.vcenterInventoryLoadError.message}
+                  </Alert>
+                </StackItem>
+              ) : null}
+              {vm.clusterInventoryLoadError ? (
+                <StackItem>
+                  <Alert
+                    variant="danger"
+                    isInline
+                    title="Could not load cluster data"
+                  >
+                    {vm.clusterInventoryLoadError.message}
+                  </Alert>
+                </StackItem>
+              ) : null}
+              {charts?.exportError ? (
+                <StackItem>
+                  <Alert
+                    variant="danger"
+                    isInline
+                    title="Export failed"
+                    actionClose={
+                      <AlertActionCloseButton
+                        onClose={charts.clearExportError}
+                      />
+                    }
+                  >
+                    <p>{charts.exportError}</p>
+                  </Alert>
+                </StackItem>
+              ) : null}
+            </Stack>
+          ) : undefined
         }
         headerActions={
           <Flex
@@ -370,6 +319,59 @@ const ReportContent: React.FC = () => {
           </Flex>
         }
       >
+        {(vm.assessment.sourceType === "rvtools" &&
+          vm.rvtoolsPendingUploadBatch) ||
+        vm.hasMissingMetrics ? (
+          <Stack hasGutter>
+            {vm.assessment.sourceType === "rvtools" &&
+              vm.rvtoolsPendingUploadBatch && (
+                <StackItem>
+                  <RvtoolsUploadWarning
+                    batch={vm.rvtoolsPendingUploadBatch}
+                    failures={vm.rvtoolsPendingUploadBatch.failures}
+                    isDismissed={vm.isRvtoolsUploadWarningDismissed}
+                    onDismiss={vm.dismissRvtoolsUploadWarning}
+                    isErrorReviewOpen={vm.isReviewRvtoolsFailuresOpen}
+                    onErrorReviewOpenChange={vm.setReviewRvtoolsFailuresOpen}
+                    canAddMoreRvtoolsFiles={
+                      vm.canAppendRvtoolsFiles &&
+                      vm.rvtoolsRemainingFileSlots > 0
+                    }
+                    onAddRvtoolsFiles={vm.openAppendRvtoolsFromErrorReview}
+                  />
+                </StackItem>
+              )}
+            {vm.hasMissingMetrics ? (
+              <StackItem>
+                <Alert
+                  variant="warning"
+                  isInline
+                  title="Limited recommendation: required metrics are missing."
+                >
+                  <Stack hasGutter>
+                    <StackItem>
+                      <p>
+                        Add the following to improve accuracy and create a new
+                        assessment:
+                      </p>
+                      <List>
+                        {vm.missingMetrics.map((metric) => (
+                          <ListItem key={metric}>{metric}</ListItem>
+                        ))}
+                      </List>
+                    </StackItem>
+                    <StackItem>
+                      <CreateAssessmentDropdown
+                        toggleLabel="Create a new assessment"
+                        onSelectRvtools={() => vm.openRvtoolsModal()}
+                      />
+                    </StackItem>
+                  </Stack>
+                </Alert>
+              </StackItem>
+            ) : null}
+          </Stack>
+        ) : null}
         {vm.assessment.sourceType === "rvtools" && <DeployOvaBanner />}
 
         <Tabs

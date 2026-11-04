@@ -1,19 +1,19 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { Button, Popover } from "@patternfly/react-core";
 import { PlusCircleIcon } from "@patternfly/react-icons";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import React from "react";
 
 import type { RvtoolsFileUploadResult } from "../../../../data/stores/JobsStore";
+import {
+  getFlyoutAppendTo,
+  themePopoverFlyoutClassName,
+} from "../../../../lib/patternfly/flyoutAppendTo";
 import { formatRvtoolsBackendErrorMessage } from "../../../assessment/rvtools";
 
-const popoverClassName = css`
-  --pf-v6-c-popover__content--BackgroundColor: var(
-    --pf-t--global--background--color--100
-  );
-  --pf-v6-c-popover__content--Color: var(--pf-t--global--text--color--regular);
+const popoverFooterClassName = css`
   --pf-v6-c-popover__footer--BackgroundColor: var(
-    --pf-t--global--background--color--100
+    --pf-t--global--background--color--floating--default
   );
 `;
 
@@ -27,6 +27,11 @@ const tableStyle = css`
 
   && th {
     font-weight: var(--pf-t--global--font--weight--body--bold);
+    color: var(--pf-t--global--text--color--regular);
+  }
+
+  && td {
+    color: var(--pf-t--global--text--color--regular);
   }
 `;
 
@@ -75,8 +80,9 @@ export const RvtoolsFailedUploadsReviewPopover: React.FC<
 
   return (
     <Popover
+      appendTo={getFlyoutAppendTo}
       aria-label="Review files with errors"
-      className={popoverClassName}
+      className={cx(themePopoverFlyoutClassName, popoverFooterClassName)}
       isVisible={isOpen}
       shouldClose={() => onOpenChange(false)}
       hideOnOutsideClick

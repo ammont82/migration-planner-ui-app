@@ -85,6 +85,7 @@ export const useReportRvtoolsUploadJob = ({
   const closeRvtoolsModal = useCallback((): void => {
     void jobsStore.cancelRVToolsJob();
     setIsRvtoolsModalOpen(false);
+    jobsStore.reset();
   }, [jobsStore]);
 
   const dismissRvtoolsAppendSuccess = useCallback((): void => {
@@ -133,6 +134,7 @@ export const useReportRvtoolsUploadJob = ({
     if (!assessmentId) {
       return;
     }
+    let hasUploadFailures = false;
     try {
       const uploadResults =
         jobsStore.getSnapshot().rvtoolsUpload?.results ?? [];
@@ -146,8 +148,12 @@ export const useReportRvtoolsUploadJob = ({
             )
           : null;
 
+      hasUploadFailures = (summary?.invalidResults.length ?? 0) > 0;
+
       await assessmentsStore.get(assessmentId);
-      setIsRvtoolsModalOpen(false);
+      if (!hasUploadFailures) {
+        setIsRvtoolsModalOpen(false);
+      }
       setRvtoolsAppendSuccessMessage(null);
       setRvtoolsAppendNotice(null);
 
@@ -162,7 +168,9 @@ export const useReportRvtoolsUploadJob = ({
     } finally {
       isNavigatingRef.current = false;
       setRvtoolsJobIntent(null);
-      jobsStore.reset();
+      if (!hasUploadFailures) {
+        jobsStore.reset();
+      }
     }
   }, [
     assessmentId,
