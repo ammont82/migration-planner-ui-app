@@ -61,8 +61,6 @@ export const useReportRvtoolsUploadJob = ({
     "create" | "append" | null
   >(null);
   const activeRvtoolsJobIntentRef = useRef<"create" | "append" | null>(null);
-  const [isReviewRvtoolsFailuresOpen, setIsReviewRvtoolsFailuresOpen] =
-    useState(false);
 
   const setRvtoolsJobIntent = useCallback(
     (intent: "create" | "append" | null): void => {
@@ -118,12 +116,7 @@ export const useReportRvtoolsUploadJob = ({
     [jobsStore, persistenceStore],
   );
 
-  const setReviewRvtoolsFailuresOpen = useCallback((open: boolean): void => {
-    setIsReviewRvtoolsFailuresOpen(open);
-  }, []);
-
   const openAppendRvtoolsFromErrorReview = useCallback((): void => {
-    setIsReviewRvtoolsFailuresOpen(false);
     openAppendRvtoolsModal();
   }, [openAppendRvtoolsModal]);
 
@@ -134,7 +127,7 @@ export const useReportRvtoolsUploadJob = ({
     if (!assessmentId) {
       return;
     }
-    let hasUploadFailures = false;
+    let allUploadFailed = false;
     try {
       const uploadResults =
         jobsStore.getSnapshot().rvtoolsUpload?.results ?? [];
@@ -148,27 +141,28 @@ export const useReportRvtoolsUploadJob = ({
             )
           : null;
 
-      hasUploadFailures = (summary?.invalidResults.length ?? 0) > 0;
+      const validCount = summary?.validFileNames.length ?? 0;
+      const invalidCount = summary?.invalidResults.length ?? 0;
+      allUploadFailed = validCount === 0 && invalidCount > 0;
+      const partialFailure = validCount > 0 && invalidCount > 0;
 
       await assessmentsStore.get(assessmentId);
-      if (!hasUploadFailures) {
+      if (!allUploadFailed) {
         setIsRvtoolsModalOpen(false);
       }
       setRvtoolsAppendSuccessMessage(null);
       setRvtoolsAppendNotice(null);
 
-      if (summary) {
+      if (summary && !allUploadFailed && !partialFailure) {
         const toast = buildAppendRvtoolsToastMessage(summary);
-        if (toast?.variant === "warning") {
-          setRvtoolsAppendNotice(toast);
-        } else if (toast?.variant === "success") {
+        if (toast?.variant === "success") {
           setRvtoolsAppendSuccessMessage(toast.message);
         }
       }
     } finally {
       isNavigatingRef.current = false;
       setRvtoolsJobIntent(null);
-      if (!hasUploadFailures) {
+      if (!allUploadFailed) {
         jobsStore.reset();
       }
     }
@@ -372,8 +366,6 @@ export const useReportRvtoolsUploadJob = ({
     dismissRvtoolsAppendNotice,
     removeRvtoolsUploadResult,
     canAppendRvtoolsFiles,
-    isReviewRvtoolsFailuresOpen,
-    setReviewRvtoolsFailuresOpen,
     openAppendRvtoolsFromErrorReview,
   };
 };

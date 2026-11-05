@@ -9,8 +9,8 @@ import type {
 } from "./interfaces/IRvtoolsReportPersistenceStore";
 import type { RvtoolsFileUploadResult } from "./JobsStore";
 import {
-  getActiveRvtoolsPendingBatch,
-  mergeRvtoolsPendingFailures,
+  appendRvtoolsPendingUploadBatch,
+  getActiveRvtoolsPendingBatches,
 } from "./rvtoolsLocalPersistence";
 
 const summarizeRvtoolsUploadResults = (
@@ -36,11 +36,8 @@ export class RvtoolsReportPersistenceStore
 {
   private snapshot: RvtoolsReportPersistenceSnapshot = {
     assessmentId: undefined,
-    pendingBatch: null,
+    pendingBatches: [],
   };
-
-  /** Subset count from last report sync; used for append upload outcome counts. */
-  private syncedSubsetCount = 0;
 
   override getSnapshot(): RvtoolsReportPersistenceSnapshot {
     return this.snapshot;
@@ -49,30 +46,27 @@ export class RvtoolsReportPersistenceStore
   syncForReport(
     assessmentId: string | undefined,
     sourceType: string | undefined,
-    subsetInventories: AssessmentSubsetInventory[],
+    _subsetInventories: AssessmentSubsetInventory[],
   ): void {
     if (!assessmentId || sourceType !== "rvtools") {
-      this.syncedSubsetCount = 0;
       if (
         this.snapshot.assessmentId !== undefined ||
-        this.snapshot.pendingBatch !== null
+        this.snapshot.pendingBatches.length > 0
       ) {
         this.snapshot = {
           assessmentId: undefined,
-          pendingBatch: null,
+          pendingBatches: [],
         };
         this.notify();
       }
       return;
     }
 
-    this.syncedSubsetCount = subsetInventories.length;
-
-    const pendingBatch = getActiveRvtoolsPendingBatch(assessmentId);
+    const pendingBatches = getActiveRvtoolsPendingBatches(assessmentId);
 
     const nextSnapshot: RvtoolsReportPersistenceSnapshot = {
       assessmentId,
-      pendingBatch,
+      pendingBatches,
     };
     if (JSON.stringify(this.snapshot) === JSON.stringify(nextSnapshot)) {
       return;
@@ -90,14 +84,14 @@ export class RvtoolsReportPersistenceStore
     const { validFileNames, invalidResults, attemptedCount } =
       summarizeRvtoolsUploadResults(results);
 
-    const baselineIncludedCount =
-      context === "updated" ? this.syncedSubsetCount : 0;
-    const includedCount = baselineIncludedCount + validFileNames.length;
+    const includedCount = validFileNames.length;
+    const isPartialFailure = includedCount > 0 && invalidResults.length > 0;
 
-    if (invalidResults.length > 0) {
-      mergeRvtoolsPendingFailures(assessmentId, invalidResults, {
+    if (isPartialFailure) {
+      appendRvtoolsPendingUploadBatch(assessmentId, {
         includedCount,
         attemptedCount,
+        failures: invalidResults,
         context,
       });
     }
@@ -105,7 +99,7 @@ export class RvtoolsReportPersistenceStore
     if (this.snapshot.assessmentId === assessmentId) {
       this.snapshot = {
         assessmentId,
-        pendingBatch: getActiveRvtoolsPendingBatch(assessmentId),
+        pendingBatches: getActiveRvtoolsPendingBatches(assessmentId),
       };
       this.notify();
     }

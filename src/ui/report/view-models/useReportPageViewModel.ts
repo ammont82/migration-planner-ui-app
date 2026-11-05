@@ -317,11 +317,9 @@ export interface ReportPageViewModel {
   dismissRvtoolsAppendNotice: () => void;
   removeRvtoolsUploadResult: (fileName: string, fileSize: number) => void;
   canAppendRvtoolsFiles: boolean;
-  rvtoolsPendingUploadBatch: RvtoolsPendingUploadBatch | null;
-  isRvtoolsUploadWarningDismissed: boolean;
-  dismissRvtoolsUploadWarning: () => void;
-  isReviewRvtoolsFailuresOpen: boolean;
-  setReviewRvtoolsFailuresOpen: (open: boolean) => void;
+  rvtoolsPendingUploadBatches: RvtoolsPendingUploadBatch[];
+  isRvtoolsUploadWarningDismissed: (batchId: string) => boolean;
+  dismissRvtoolsUploadWarning: (batchId: string) => void;
   openAppendRvtoolsFromErrorReview: () => void;
   rvtoolsRemainingFileSlots: number;
 }
@@ -507,7 +505,7 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
 
   const {
     persistenceStore,
-    rvtoolsPendingUploadBatch,
+    rvtoolsPendingUploadBatches,
     isRvtoolsUploadWarningDismissed,
     dismissRvtoolsUploadWarning,
   } = useReportRvtoolsPersistence({
@@ -870,11 +868,9 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
     dismissRvtoolsAppendNotice: rvtoolsUploadJob.dismissRvtoolsAppendNotice,
     removeRvtoolsUploadResult: rvtoolsUploadJob.removeRvtoolsUploadResult,
     canAppendRvtoolsFiles: rvtoolsUploadJob.canAppendRvtoolsFiles,
-    rvtoolsPendingUploadBatch,
+    rvtoolsPendingUploadBatches,
     isRvtoolsUploadWarningDismissed,
     dismissRvtoolsUploadWarning,
-    isReviewRvtoolsFailuresOpen: rvtoolsUploadJob.isReviewRvtoolsFailuresOpen,
-    setReviewRvtoolsFailuresOpen: rvtoolsUploadJob.setReviewRvtoolsFailuresOpen,
     openAppendRvtoolsFromErrorReview:
       rvtoolsUploadJob.openAppendRvtoolsFromErrorReview,
     rvtoolsRemainingFileSlots,

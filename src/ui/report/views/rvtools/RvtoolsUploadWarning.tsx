@@ -1,6 +1,6 @@
 import { css } from "@emotion/css";
 import { Alert, AlertActionCloseButton, Button } from "@patternfly/react-core";
-import React from "react";
+import React, { useState } from "react";
 
 import type { RvtoolsFileUploadResult } from "../../../../data/stores/JobsStore";
 import type { RvtoolsPendingUploadBatch } from "../../../../data/stores/rvtoolsLocalPersistence";
@@ -15,8 +15,6 @@ export type RvtoolsUploadWarningProps = {
   failures: RvtoolsFileUploadResult[];
   isDismissed: boolean;
   onDismiss: () => void;
-  isErrorReviewOpen: boolean;
-  onErrorReviewOpenChange: (open: boolean) => void;
   canAddMoreRvtoolsFiles: boolean;
   onAddRvtoolsFiles: () => void;
 };
@@ -26,24 +24,24 @@ export const RvtoolsUploadWarning: React.FC<RvtoolsUploadWarningProps> = ({
   failures,
   isDismissed,
   onDismiss,
-  isErrorReviewOpen,
-  onErrorReviewOpenChange,
   canAddMoreRvtoolsFiles,
   onAddRvtoolsFiles,
 }) => {
+  const [isErrorReviewOpen, setIsErrorReviewOpen] = useState(false);
+
   if (isDismissed || batch.failures.length === 0) {
     return null;
   }
 
   const failureCount = batch.failures.length;
-  const includedCount = batch.includedCount;
+  const successCount = batch.includedCount;
   const attemptedCount = batch.attemptedCount;
   const verb = batch.context === "updated" ? "updated" : "created";
 
   const title =
-    failureCount === 1 && attemptedCount === 1
-      ? `Assessment ${verb} using ${includedCount} of ${attemptedCount} file`
-      : `Assessment ${verb} using ${includedCount} of ${attemptedCount} files`;
+    attemptedCount === 1
+      ? `Assessment ${verb} using ${successCount} of ${attemptedCount} file`
+      : `Assessment ${verb} using ${successCount} of ${attemptedCount} files`;
 
   const bodySuffix =
     failureCount === 1
@@ -66,14 +64,14 @@ export const RvtoolsUploadWarning: React.FC<RvtoolsUploadWarningProps> = ({
       <RvtoolsFailedUploadsReviewPopover
         failures={failures}
         isOpen={isErrorReviewOpen}
-        onOpenChange={onErrorReviewOpenChange}
+        onOpenChange={setIsErrorReviewOpen}
         canAddMoreFiles={canAddMoreRvtoolsFiles}
         onAddRvtoolsFiles={onAddRvtoolsFiles}
         reviewTrigger={
           <Button
             variant="link"
             isInline
-            onClick={() => onErrorReviewOpenChange(!isErrorReviewOpen)}
+            onClick={() => setIsErrorReviewOpen(!isErrorReviewOpen)}
           >
             {reviewLabel}
           </Button>

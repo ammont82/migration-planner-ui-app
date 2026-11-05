@@ -1,6 +1,9 @@
 import type { RvtoolsFileUploadResult } from "./JobsStore";
 
 export type RvtoolsPendingUploadBatch = {
+  /** Stable id for dismiss and review UI. */
+  id: string;
+  /** Files successfully processed in this upload attempt. */
   includedCount: number;
   attemptedCount: number;
   failures: RvtoolsFileUploadResult[];
@@ -9,88 +12,94 @@ export type RvtoolsPendingUploadBatch = {
 };
 
 /** Session-only state; cleared on full page refresh. */
-const pendingBatchByAssessmentId = new Map<string, RvtoolsPendingUploadBatch>();
+const pendingBatchesByAssessmentId = new Map<
+  string,
+  RvtoolsPendingUploadBatch[]
+>();
 
 /** Clears all in-memory RVTools persistence (for unit tests). */
 export const clearRvtoolsPersistenceForTests = (): void => {
-  pendingBatchByAssessmentId.clear();
+  pendingBatchesByAssessmentId.clear();
 };
 
-const readPendingBatch = (
-  assessmentId: string,
-): RvtoolsPendingUploadBatch | null =>
-  pendingBatchByAssessmentId.get(assessmentId) ?? null;
+const createBatchId = (): string =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-export const saveRvtoolsPendingUploadBatch = (
+const readPendingBatches = (
   assessmentId: string,
-  batch: RvtoolsPendingUploadBatch,
-): void => {
-  pendingBatchByAssessmentId.set(assessmentId, batch);
+): RvtoolsPendingUploadBatch[] =>
+  pendingBatchesByAssessmentId.get(assessmentId) ?? [];
+
+export const appendRvtoolsPendingUploadBatch = (
+  assessmentId: string,
+  batch: Omit<RvtoolsPendingUploadBatch, "id"> & { id?: string },
+): RvtoolsPendingUploadBatch => {
+  const nextBatch: RvtoolsPendingUploadBatch = {
+    ...batch,
+    id: batch.id ?? createBatchId(),
+  };
+  pendingBatchesByAssessmentId.set(assessmentId, [
+    ...readPendingBatches(assessmentId),
+    nextBatch,
+  ]);
+  return nextBatch;
 };
 
-export const getRvtoolsPendingUploadBatch = (
+export const getRvtoolsPendingUploadBatches = (
   assessmentId: string,
-): RvtoolsPendingUploadBatch | null => readPendingBatch(assessmentId);
-
-export const mergeRvtoolsPendingFailures = (
-  assessmentId: string,
-  failures: RvtoolsFileUploadResult[],
-  options: {
-    includedCount: number;
-    attemptedCount: number;
-    context: "created" | "updated";
-  },
-): void => {
-  if (failures.length === 0) {
-    return;
-  }
-  const existing = readPendingBatch(assessmentId);
-  const mergedFailures = [...(existing?.failures ?? []), ...failures].filter(
-    (entry, index, all) =>
-      all.findIndex(
-        (other) =>
-          other.fileName === entry.fileName &&
-          other.fileSize === entry.fileSize &&
-          other.errorMessage === entry.errorMessage,
-      ) === index,
-  );
-  saveRvtoolsPendingUploadBatch(assessmentId, {
-    includedCount: options.includedCount,
-    attemptedCount: options.attemptedCount,
-    failures: mergedFailures,
-    context: options.context,
-  });
-};
+): RvtoolsPendingUploadBatch[] => readPendingBatches(assessmentId);
 
 export const removeRvtoolsPendingFailure = (
   assessmentId: string,
+  batchId: string,
   fileName: string,
   fileSize: number,
 ): void => {
-  const existing = readPendingBatch(assessmentId);
-  if (!existing) {
+  const batches = readPendingBatches(assessmentId);
+  if (batches.length === 0) {
     return;
   }
-  const failures = existing.failures.filter(
-    (entry) => !(entry.fileName === fileName && entry.fileSize === fileSize),
-  );
-  if (failures.length === 0) {
-    clearRvtoolsPendingUploadBatch(assessmentId);
+  const nextBatches = batches
+    .map((batch) => {
+      if (batch.id !== batchId) {
+        return batch;
+      }
+      const failures = batch.failures.filter(
+        (entry) =>
+          !(entry.fileName === fileName && entry.fileSize === fileSize),
+      );
+      return failures.length === 0 ? null : { ...batch, failures };
+    })
+    .filter((batch): batch is RvtoolsPendingUploadBatch => batch !== null);
+
+  if (nextBatches.length === 0) {
+    pendingBatchesByAssessmentId.delete(assessmentId);
     return;
   }
-  saveRvtoolsPendingUploadBatch(assessmentId, { ...existing, failures });
+  pendingBatchesByAssessmentId.set(assessmentId, nextBatches);
 };
 
-export const clearRvtoolsPendingUploadBatch = (assessmentId: string): void => {
-  pendingBatchByAssessmentId.delete(assessmentId);
+export const clearRvtoolsPendingUploadBatches = (
+  assessmentId: string,
+): void => {
+  pendingBatchesByAssessmentId.delete(assessmentId);
 };
 
+export const getActiveRvtoolsPendingBatches = (
+  assessmentId: string,
+): RvtoolsPendingUploadBatch[] =>
+  readPendingBatches(assessmentId).filter((batch) => batch.failures.length > 0);
+
+/** @deprecated Use getActiveRvtoolsPendingBatches */
 export const getActiveRvtoolsPendingBatch = (
   assessmentId: string,
-): RvtoolsPendingUploadBatch | null => {
-  const batch = getRvtoolsPendingUploadBatch(assessmentId);
-  if (!batch || batch.failures.length === 0) {
-    return null;
-  }
-  return batch;
-};
+): RvtoolsPendingUploadBatch | null =>
+  getActiveRvtoolsPendingBatches(assessmentId)[0] ?? null;
+
+/** @deprecated Use getRvtoolsPendingUploadBatches */
+export const getRvtoolsPendingUploadBatch = (
+  assessmentId: string,
+): RvtoolsPendingUploadBatch | null =>
+  getActiveRvtoolsPendingBatch(assessmentId);

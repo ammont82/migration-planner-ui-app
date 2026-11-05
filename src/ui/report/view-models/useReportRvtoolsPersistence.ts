@@ -17,9 +17,9 @@ export const useReportRvtoolsPersistence = ({
   subsetInventories: AssessmentSubsetInventory[];
 }): {
   persistenceStore: IRvtoolsReportPersistenceStore;
-  rvtoolsPendingUploadBatch: RvtoolsPendingUploadBatch | null;
-  isRvtoolsUploadWarningDismissed: boolean;
-  dismissRvtoolsUploadWarning: () => void;
+  rvtoolsPendingUploadBatches: RvtoolsPendingUploadBatch[];
+  isRvtoolsUploadWarningDismissed: (batchId: string) => boolean;
+  dismissRvtoolsUploadWarning: (batchId: string) => void;
 } => {
   const persistenceStore = useInjection<IRvtoolsReportPersistenceStore>(
     Symbols.RvtoolsReportPersistenceStore,
@@ -36,21 +36,31 @@ export const useReportRvtoolsPersistence = ({
 
   const [boundWarningAssessmentId, setBoundWarningAssessmentId] =
     useState(assessmentId);
-  const [isRvtoolsUploadWarningDismissed, setIsRvtoolsUploadWarningDismissed] =
-    useState(false);
+  const [dismissedBatchIds, setDismissedBatchIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   if (boundWarningAssessmentId !== assessmentId) {
     setBoundWarningAssessmentId(assessmentId);
-    setIsRvtoolsUploadWarningDismissed(false);
+    setDismissedBatchIds(new Set());
   }
 
-  const dismissRvtoolsUploadWarning = useCallback((): void => {
-    setIsRvtoolsUploadWarningDismissed(true);
+  const isRvtoolsUploadWarningDismissed = useCallback(
+    (batchId: string): boolean => dismissedBatchIds.has(batchId),
+    [dismissedBatchIds],
+  );
+
+  const dismissRvtoolsUploadWarning = useCallback((batchId: string): void => {
+    setDismissedBatchIds((previous) => {
+      const next = new Set(previous);
+      next.add(batchId);
+      return next;
+    });
   }, []);
 
   return {
     persistenceStore,
-    rvtoolsPendingUploadBatch: snapshot.pendingBatch,
+    rvtoolsPendingUploadBatches: snapshot.pendingBatches,
     isRvtoolsUploadWarningDismissed,
     dismissRvtoolsUploadWarning,
   };
