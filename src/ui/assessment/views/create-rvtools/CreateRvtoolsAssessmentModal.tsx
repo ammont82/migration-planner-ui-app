@@ -17,6 +17,10 @@ import React from "react";
 
 import type { RvtoolsUploadState } from "../../../../data/stores/JobsStore";
 import { isNameError } from "../../../../lib/common/ErrorParser";
+import {
+  RVTOOLS_APPEND_ALL_FAILED_MODAL_MESSAGE,
+  RVTOOLS_APPEND_ALL_FAILED_MODAL_TITLE,
+} from "../../helpers/rvtoolsUploadOutcome";
 import { RVTOOLS_DATA_SHARING_URL, RvtoolsFilesField } from "../../rvtools";
 import {
   type CreateRvtoolsAssessmentModalMode,
@@ -150,10 +154,27 @@ export const CreateRvtoolsAssessmentModal: React.FC<
     !resumePartialAssessmentId &&
     vm.allUploadResultsTerminal;
 
+  const showNoFilesAddedAlert =
+    mode === "append" &&
+    vm.showReviewTable &&
+    vm.invalidFileCount > 0 &&
+    vm.validFileCount === 0 &&
+    vm.allUploadResultsTerminal;
+
   return (
     <Modal variant="medium" isOpen={isOpen} onClose={handleClose}>
       <ModalHeader title={title} />
       <ModalBody>
+        {showNoFilesAddedAlert && (
+          <Alert
+            variant="danger"
+            isInline
+            title={RVTOOLS_APPEND_ALL_FAILED_MODAL_TITLE}
+            style={{ marginBottom: "var(--pf-t--global--spacer--md)" }}
+          >
+            {RVTOOLS_APPEND_ALL_FAILED_MODAL_MESSAGE}
+          </Alert>
+        )}
         {showNoAssessmentCreatedAlert && (
           <Alert
             variant="danger"

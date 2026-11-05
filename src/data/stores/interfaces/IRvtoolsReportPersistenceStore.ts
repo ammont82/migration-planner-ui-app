@@ -6,7 +6,7 @@ import type { RvtoolsPendingUploadBatch } from "../rvtoolsLocalPersistence";
 
 export type RvtoolsReportPersistenceSnapshot = {
   assessmentId: string | undefined;
-  pendingBatch: RvtoolsPendingUploadBatch | null;
+  pendingBatches: RvtoolsPendingUploadBatch[];
 };
 
 export type RvtoolsUploadOutcomeContext = "created" | "updated";

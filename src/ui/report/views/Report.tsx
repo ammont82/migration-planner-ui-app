@@ -320,27 +320,26 @@ const ReportContent: React.FC = () => {
         }
       >
         {(vm.assessment.sourceType === "rvtools" &&
-          vm.rvtoolsPendingUploadBatch) ||
+          vm.rvtoolsPendingUploadBatches.length > 0) ||
         vm.hasMissingMetrics ? (
           <Stack hasGutter>
-            {vm.assessment.sourceType === "rvtools" &&
-              vm.rvtoolsPendingUploadBatch && (
-                <StackItem>
-                  <RvtoolsUploadWarning
-                    batch={vm.rvtoolsPendingUploadBatch}
-                    failures={vm.rvtoolsPendingUploadBatch.failures}
-                    isDismissed={vm.isRvtoolsUploadWarningDismissed}
-                    onDismiss={vm.dismissRvtoolsUploadWarning}
-                    isErrorReviewOpen={vm.isReviewRvtoolsFailuresOpen}
-                    onErrorReviewOpenChange={vm.setReviewRvtoolsFailuresOpen}
-                    canAddMoreRvtoolsFiles={
-                      vm.canAppendRvtoolsFiles &&
-                      vm.rvtoolsRemainingFileSlots > 0
-                    }
-                    onAddRvtoolsFiles={vm.openAppendRvtoolsFromErrorReview}
-                  />
-                </StackItem>
-              )}
+            {vm.assessment.sourceType === "rvtools"
+              ? vm.rvtoolsPendingUploadBatches.map((batch) => (
+                  <StackItem key={batch.id}>
+                    <RvtoolsUploadWarning
+                      batch={batch}
+                      failures={batch.failures}
+                      isDismissed={vm.isRvtoolsUploadWarningDismissed(batch.id)}
+                      onDismiss={() => vm.dismissRvtoolsUploadWarning(batch.id)}
+                      canAddMoreRvtoolsFiles={
+                        vm.canAppendRvtoolsFiles &&
+                        vm.rvtoolsRemainingFileSlots > 0
+                      }
+                      onAddRvtoolsFiles={vm.openAppendRvtoolsFromErrorReview}
+                    />
+                  </StackItem>
+                ))
+              : null}
             {vm.hasMissingMetrics ? (
               <StackItem>
                 <Alert
