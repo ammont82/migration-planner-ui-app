@@ -33,6 +33,7 @@ import { routes } from "../../../routing/Routes";
 import CreateRvtoolsAssessmentModal from "../../assessment/views/create-rvtools/CreateRvtoolsAssessmentModal";
 import { AppPage } from "../../core/components/AppPage";
 import CreateAssessmentDropdown from "../../core/components/CreateAssessmentDropdown";
+import { fromGroupOptionId } from "../helpers/groupViewModel";
 import { useReportPageViewModel } from "../view-models/useReportPageViewModel";
 import { Dashboard } from "./assessment-report/Dashboard";
 import { ReportFilterBar } from "./assessment-report/ReportFilterBar";
@@ -192,48 +193,13 @@ const ReportContent: React.FC = () => {
                 : "[Last updated time stamp]"}
             </StackItem>
             <StackItem>
-              {vm.clusterCount > 0 ? (
-                typeof vm.reportSummaryVms?.total === "number" ? (
-                  <>
-                    Detected <strong>{vm.reportSummaryVms.total} VMs</strong> in{" "}
-                    <strong>
-                      {vm.clusterCount}{" "}
-                      {vm.clusterCount === 1
-                        ? "vSphere cluster"
-                        : "vSphere clusters"}
-                    </strong>
-                  </>
-                ) : (
-                  <>
-                    Detected{" "}
-                    <strong>
-                      {vm.clusterCount}{" "}
-                      {vm.clusterCount === 1
-                        ? "vSphere cluster"
-                        : "vSphere clusters"}
-                    </strong>
-                  </>
-                )
+              {vm.inventoryScopeSummary ? (
+                <>
+                  Inventory: <strong>{vm.inventoryScopeSummary}</strong>
+                </>
               ) : (
                 "No vSphere clusters detected"
               )}
-            </StackItem>
-            <StackItem>
-              <ReportFilterBar
-                clusterView={vm.clusterView}
-                clusterSelectDisabled={vm.clusterSelectDisabled}
-                isClusterSelectOpen={vm.isClusterSelectOpen}
-                onClusterSelectOpenChange={vm.setClusterSelectOpen}
-                onClusterSelect={handleClusterSelect}
-                groupView={vm.groupView}
-                isGroupSelectOpen={vm.isGroupSelectOpen}
-                onGroupSelectOpenChange={vm.setGroupSelectOpen}
-                onGroupSelect={(_event, value) => {
-                  if (typeof value === "string") {
-                    vm.selectGroup(value);
-                  }
-                }}
-              />
             </StackItem>
           </Stack>
         }
@@ -411,27 +377,61 @@ const ReportContent: React.FC = () => {
           aria-label="Migration report"
         >
           <TabContentBody>
-            {vm.scopedClusterView ? (
-              <Dashboard
-                infra={vm.scopedClusterView.viewInfra}
-                vms={vm.scopedClusterView.viewVms}
-                cpuCores={vm.scopedClusterView.cpuCores}
-                ramGB={vm.scopedClusterView.ramGB}
-                clusters={vm.scopedClusterView.viewClusters}
-                isAggregateView={vm.scopedClusterView.isAggregateView}
-                clusterFound={vm.scopedClusterView.clusterFound}
-                vcenterVersion={vm.vcenterVersion}
-                vcenterId={vm.vcenterId}
-              />
-            ) : (
-              <Bullseye>
-                <Content component={ContentVariants.p}>
-                  {vm.clusterView.isAggregateView
-                    ? "This assessment does not have report data yet."
-                    : "No data is available for the selected cluster."}
-                </Content>
-              </Bullseye>
-            )}
+            <Stack hasGutter>
+              <StackItem>
+                <ReportFilterBar
+                  clusterView={vm.clusterView}
+                  clusterSelectDisabled={vm.clusterSelectDisabled}
+                  isClusterSelectOpen={vm.isClusterSelectOpen}
+                  onClusterSelectOpenChange={vm.setClusterSelectOpen}
+                  onClusterSelect={handleClusterSelect}
+                  viewingGroupView={vm.viewingGroupView}
+                  isViewingGroupSelectOpen={vm.isGroupSelectOpen}
+                  onViewingGroupSelectOpenChange={vm.setGroupSelectOpen}
+                  onViewingGroupSelect={(_event, value) => {
+                    if (typeof value === "string") {
+                      vm.selectGroup(fromGroupOptionId(value));
+                    }
+                  }}
+                  vcenterView={vm.vcenterFilterView}
+                  isVcenterSelectOpen={vm.isVcenterSelectOpen}
+                  onVcenterSelectOpenChange={vm.setVcenterSelectOpen}
+                  onVcenterSelect={(_event, value) => {
+                    if (typeof value === "string") {
+                      vm.selectVcenterScope(fromGroupOptionId(value));
+                    }
+                  }}
+                  viewingScopeSummary={vm.viewingScopeSummary}
+                />
+              </StackItem>
+              <StackItem>
+                {vm.isReportInventoryLoading && !vm.scopedClusterView ? (
+                  <Bullseye>
+                    <Spinner size="lg" />
+                  </Bullseye>
+                ) : vm.scopedClusterView ? (
+                  <Dashboard
+                    infra={vm.scopedClusterView.viewInfra}
+                    vms={vm.scopedClusterView.viewVms}
+                    cpuCores={vm.scopedClusterView.cpuCores}
+                    ramGB={vm.scopedClusterView.ramGB}
+                    clusters={vm.scopedClusterView.viewClusters}
+                    isAggregateView={vm.scopedClusterView.isAggregateView}
+                    clusterFound={vm.scopedClusterView.clusterFound}
+                    vcenterVersion={vm.vcenterVersion}
+                    vcenterId={vm.vcenterId}
+                  />
+                ) : (
+                  <Bullseye>
+                    <Content component={ContentVariants.p}>
+                      {vm.clusterView.isAggregateView
+                        ? "This assessment does not have report data yet."
+                        : "No data is available for the selected cluster."}
+                    </Content>
+                  </Bullseye>
+                )}
+              </StackItem>
+            </Stack>
           </TabContentBody>
         </TabContent>
         <TabContent

@@ -28,7 +28,7 @@ export const fromGroupOptionId = (optionId: string): string => {
   return rest === EMPTY_SUBSET_ID_TOKEN ? "" : rest;
 };
 
-export type GroupLabelMode = "discovery" | "vcenter";
+export type GroupLabelMode = "discovery" | "vcenter" | "viewing-group";
 
 export type GroupOption = { id: string; label: string };
 
@@ -77,7 +77,12 @@ export const buildGroupViewModel = ({
   const subsets = subsetInventories ?? [];
   const showGroupFilter = subsets.length > 0;
 
-  const allOptionLabel = labelMode === "vcenter" ? "All vCenters" : "All VMs";
+  const allOptionLabel =
+    labelMode === "vcenter"
+      ? "All vCenters"
+      : labelMode === "viewing-group"
+        ? "All groups"
+        : "All VMs";
 
   const groupOptions: GroupOption[] = [
     { id: ALL_VMS_GROUP_ID, label: allOptionLabel },
@@ -86,7 +91,9 @@ export const buildGroupViewModel = ({
       label:
         labelMode === "vcenter"
           ? getSubsetInventoryLabel(subset)
-          : `Group (${subset.vmsCount ?? 0} VMs)`,
+          : labelMode === "viewing-group"
+            ? subset.name?.trim() || `Group (${subset.vmsCount ?? 0} VMs)`
+            : `Group (${subset.vmsCount ?? 0} VMs)`,
     })),
   ];
 
@@ -114,13 +121,13 @@ export const buildGroupViewModel = ({
 /** Cluster filter is only meaningful after a specific vCenter is selected. */
 export const computeClusterSelectDisabled = (
   clusterOptionCount: number,
-  showGroupFilter: boolean,
-  selectedGroupId: string,
+  showVcenterFilter: boolean,
+  selectedVcenterScopeId: string,
 ): boolean => {
   if (clusterOptionCount <= 1) {
     return true;
   }
-  if (showGroupFilter && selectedGroupId === ALL_VMS_GROUP_ID) {
+  if (showVcenterFilter && selectedVcenterScopeId === ALL_VMS_GROUP_ID) {
     return true;
   }
   return false;

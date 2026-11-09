@@ -8,6 +8,8 @@ import {
   SelectOption,
   Split,
   SplitItem,
+  Stack,
+  StackItem,
 } from "@patternfly/react-core";
 import React from "react";
 
@@ -19,6 +21,10 @@ const filterBarStyle = css`
   align-items: center;
 `;
 
+const scopeSummaryStyle = css`
+  font-size: var(--pf-t--global--font--size--sm);
+`;
+
 export interface ReportFilterBarProps {
   clusterView: ClusterViewModel;
   clusterSelectDisabled: boolean;
@@ -28,15 +34,23 @@ export interface ReportFilterBarProps {
     event: React.MouseEvent<Element, MouseEvent> | undefined,
     value: string | number | undefined,
   ) => void;
-  groupView: GroupViewModel;
-  isGroupSelectOpen: boolean;
-  onGroupSelectOpenChange: (open: boolean) => void;
-  onGroupSelect: (
+  viewingGroupView?: GroupViewModel;
+  isViewingGroupSelectOpen?: boolean;
+  onViewingGroupSelectOpenChange?: (open: boolean) => void;
+  onViewingGroupSelect?: (
     event: React.MouseEvent<Element, MouseEvent> | undefined,
     value: string | number | undefined,
   ) => void;
-  /** Shows a preview badge when the group filter is not yet available in live reports. */
-  groupFilterComingSoon?: boolean;
+  vcenterView?: GroupViewModel;
+  isVcenterSelectOpen?: boolean;
+  onVcenterSelectOpenChange?: (open: boolean) => void;
+  onVcenterSelect?: (
+    event: React.MouseEvent<Element, MouseEvent> | undefined,
+    value: string | number | undefined,
+  ) => void;
+  /** Preview badge when the viewing-group filter is not yet wired for live RVTools data. */
+  viewingGroupFilterComingSoon?: boolean;
+  viewingScopeSummary?: string;
 }
 
 export const ReportFilterBar: React.FC<ReportFilterBarProps> = ({
@@ -45,95 +59,153 @@ export const ReportFilterBar: React.FC<ReportFilterBarProps> = ({
   isClusterSelectOpen,
   onClusterSelectOpenChange,
   onClusterSelect,
-  groupView,
-  isGroupSelectOpen,
-  onGroupSelectOpenChange,
-  onGroupSelect,
-  groupFilterComingSoon = false,
-}) => (
-  <Split hasGutter className={filterBarStyle}>
-    {groupView.showGroupFilter ? (
-      <>
-        <SplitItem>
-          <Select
-            isScrollable
-            isOpen={isGroupSelectOpen}
-            selected={groupView.selectionId}
-            onSelect={onGroupSelect}
-            onOpenChange={(isOpen: boolean) => {
-              if (!groupView.groupSelectDisabled) {
-                onGroupSelectOpenChange(isOpen);
-              }
-            }}
-            toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-              <MenuToggle
-                ref={toggleRef}
-                isExpanded={isGroupSelectOpen}
-                onClick={() => {
-                  if (!groupView.groupSelectDisabled) {
-                    onGroupSelectOpenChange(!isGroupSelectOpen);
+  viewingGroupView,
+  isViewingGroupSelectOpen = false,
+  onViewingGroupSelectOpenChange,
+  onViewingGroupSelect,
+  vcenterView,
+  isVcenterSelectOpen = false,
+  onVcenterSelectOpenChange,
+  onVcenterSelect,
+  viewingGroupFilterComingSoon = false,
+  viewingScopeSummary,
+}) => {
+  const showViewingGroup = viewingGroupView?.showGroupFilter;
+  const showVcenter = vcenterView?.showGroupFilter;
+
+  return (
+    <Stack hasGutter>
+      <StackItem>
+        <Split hasGutter className={filterBarStyle}>
+          {showViewingGroup ? (
+            <>
+              <SplitItem>
+                <Select
+                  isScrollable
+                  isOpen={isViewingGroupSelectOpen}
+                  selected={viewingGroupView.selectionId}
+                  onSelect={onViewingGroupSelect}
+                  onOpenChange={(isOpen: boolean) => {
+                    if (!viewingGroupView.groupSelectDisabled) {
+                      onViewingGroupSelectOpenChange?.(isOpen);
+                    }
+                  }}
+                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                    <MenuToggle
+                      ref={toggleRef}
+                      isExpanded={isViewingGroupSelectOpen}
+                      onClick={() => {
+                        if (!viewingGroupView.groupSelectDisabled) {
+                          onViewingGroupSelectOpenChange?.(
+                            !isViewingGroupSelectOpen,
+                          );
+                        }
+                      }}
+                      isDisabled={viewingGroupView.groupSelectDisabled}
+                    >
+                      Viewing group: {viewingGroupView.selectionLabel}
+                    </MenuToggle>
+                  )}
+                >
+                  <SelectList>
+                    {viewingGroupView.groupOptions.map((option) => (
+                      <SelectOption key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectOption>
+                    ))}
+                  </SelectList>
+                </Select>
+              </SplitItem>
+              {viewingGroupFilterComingSoon ? (
+                <SplitItem>
+                  <Label isCompact color="grey">
+                    Coming soon
+                  </Label>
+                </SplitItem>
+              ) : null}
+            </>
+          ) : null}
+          {showVcenter ? (
+            <SplitItem>
+              <Select
+                isScrollable
+                isOpen={isVcenterSelectOpen}
+                selected={vcenterView.selectionId}
+                onSelect={onVcenterSelect}
+                onOpenChange={(isOpen: boolean) => {
+                  if (!vcenterView.groupSelectDisabled) {
+                    onVcenterSelectOpenChange?.(isOpen);
                   }
                 }}
-                isDisabled={groupView.groupSelectDisabled}
+                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  <MenuToggle
+                    ref={toggleRef}
+                    isExpanded={isVcenterSelectOpen}
+                    onClick={() => {
+                      if (!vcenterView.groupSelectDisabled) {
+                        onVcenterSelectOpenChange?.(!isVcenterSelectOpen);
+                      }
+                    }}
+                    isDisabled={vcenterView.groupSelectDisabled}
+                  >
+                    {vcenterView.selectionLabel}
+                  </MenuToggle>
+                )}
               >
-                Filter by vCenter: {groupView.selectionLabel}
-              </MenuToggle>
-            )}
-          >
-            <SelectList>
-              {groupView.groupOptions.map((option) => (
-                <SelectOption key={option.id} value={option.id}>
-                  {option.label}
-                </SelectOption>
-              ))}
-            </SelectList>
-          </Select>
-        </SplitItem>
-        {groupFilterComingSoon ? (
+                <SelectList>
+                  {vcenterView.groupOptions.map((option) => (
+                    <SelectOption key={option.id} value={option.id}>
+                      {option.label}
+                    </SelectOption>
+                  ))}
+                </SelectList>
+              </Select>
+            </SplitItem>
+          ) : null}
           <SplitItem>
-            <Label isCompact color="grey">
-              Coming soon
-            </Label>
+            <Select
+              isScrollable
+              isOpen={isClusterSelectOpen}
+              selected={clusterView.selectionId}
+              onSelect={onClusterSelect}
+              onOpenChange={(isOpen: boolean) => {
+                if (!clusterSelectDisabled) {
+                  onClusterSelectOpenChange(isOpen);
+                }
+              }}
+              toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                <MenuToggle
+                  ref={toggleRef}
+                  isExpanded={isClusterSelectOpen}
+                  onClick={() => {
+                    if (!clusterSelectDisabled) {
+                      onClusterSelectOpenChange(!isClusterSelectOpen);
+                    }
+                  }}
+                  isDisabled={clusterSelectDisabled}
+                >
+                  {clusterView.selectionLabel}
+                </MenuToggle>
+              )}
+            >
+              <SelectList>
+                {clusterView.clusterOptions.map((option: ClusterOption) => (
+                  <SelectOption key={option.id} value={option.id}>
+                    {option.label}
+                  </SelectOption>
+                ))}
+              </SelectList>
+            </Select>
           </SplitItem>
-        ) : null}
-      </>
-    ) : null}
-    <SplitItem>
-      <Select
-        isScrollable
-        isOpen={isClusterSelectOpen}
-        selected={clusterView.selectionId}
-        onSelect={onClusterSelect}
-        onOpenChange={(isOpen: boolean) => {
-          if (!clusterSelectDisabled) {
-            onClusterSelectOpenChange(isOpen);
-          }
-        }}
-        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-          <MenuToggle
-            ref={toggleRef}
-            isExpanded={isClusterSelectOpen}
-            onClick={() => {
-              if (!clusterSelectDisabled) {
-                onClusterSelectOpenChange(!isClusterSelectOpen);
-              }
-            }}
-            isDisabled={clusterSelectDisabled}
-          >
-            Filter by cluster: {clusterView.selectionLabel}
-          </MenuToggle>
-        )}
-      >
-        <SelectList>
-          {clusterView.clusterOptions.map((option: ClusterOption) => (
-            <SelectOption key={option.id} value={option.id}>
-              {option.label}
-            </SelectOption>
-          ))}
-        </SelectList>
-      </Select>
-    </SplitItem>
-  </Split>
-);
+        </Split>
+      </StackItem>
+      {viewingScopeSummary ? (
+        <StackItem>
+          <p className={scopeSummaryStyle}>{viewingScopeSummary}</p>
+        </StackItem>
+      ) : null}
+    </Stack>
+  );
+};
 
 ReportFilterBar.displayName = "ReportFilterBar";

@@ -8,7 +8,16 @@ import React, { useCallback, useMemo, useState } from "react";
 
 import { ALL_CLUSTERS_ID } from "../helpers/clusterViewModel";
 import { extractScopedInventoryData } from "../helpers/groupInventoryFilter";
-import { computeClusterSelectDisabled } from "../helpers/groupViewModel";
+import {
+  ALL_VMS_GROUP_ID,
+  buildGroupViewModel,
+  computeClusterSelectDisabled,
+} from "../helpers/groupViewModel";
+import {
+  buildInventoryScopeCounts,
+  buildViewingScopeCounts,
+  formatReportScopeCounts,
+} from "../helpers/reportScopeSummary";
 import {
   buildClusterViewModel,
   type ClusterViewModel,
@@ -30,7 +39,10 @@ export interface ExampleReportVM {
   clusters: { [key: string]: InventoryData } | undefined;
   clusterCount: number;
   clusterSelectDisabled: boolean;
-  detectedSummaryText: string;
+  inventoryScopeSummary?: string;
+  viewingScopeSummary: string;
+  vcenterFilterView: ReturnType<typeof buildGroupViewModel>;
+  viewingGroupView: ReturnType<typeof useGroupInventoryFilter>["groupView"];
   vcenterId: string | undefined;
   vcenterVersion: string | undefined;
 
@@ -45,7 +57,6 @@ export interface ExampleReportVM {
     value: string | number | undefined,
   ) => void;
 
-  groupView: ReturnType<typeof useGroupInventoryFilter>["groupView"];
   selectedGroupId: string;
   isGroupSelectOpen: boolean;
   setIsGroupSelectOpen: (open: boolean) => void;
@@ -114,10 +125,15 @@ export function useExampleReportViewModel(): ExampleReportVM {
   const clusterCount = fullInventory.clusters
     ? Object.keys(fullInventory.clusters).length
     : 0;
+  const vcenterFilterView = useMemo(
+    () => buildGroupViewModel({ subsetInventories: [] }),
+    [],
+  );
+
   const clusterSelectDisabled = computeClusterSelectDisabled(
     clusterView.clusterOptions.length,
-    groupView.showGroupFilter,
-    selectedGroupId,
+    false,
+    ALL_VMS_GROUP_ID,
   );
 
   const exampleSizing = useMemo(
@@ -125,16 +141,29 @@ export function useExampleReportViewModel(): ExampleReportVM {
     [selectedClusterId],
   );
 
-  const detectedSummaryText = useMemo(() => {
-    if (clusterCount <= 0) return "No clusters detected";
-    const clusterLabel =
-      clusterCount === 1 ? "vSphere cluster" : "vSphere clusters";
-    const totalVMs = fullInventory.vcenter?.vms?.total;
-    if (typeof totalVMs === "number") {
-      return `Detected ${totalVMs} VMs in ${clusterCount} ${clusterLabel}`;
-    }
-    return `Detected ${clusterCount} ${clusterLabel}`;
-  }, [fullInventory.vcenter?.vms?.total, clusterCount]);
+  const inventoryScopeSummary = useMemo(() => {
+    const counts = buildInventoryScopeCounts({
+      vmTotal: fullInventory.vcenter?.vms?.total,
+      vcenterCount: 1,
+      clusterCount,
+    });
+    return counts ? formatReportScopeCounts(counts) : undefined;
+  }, [clusterCount, fullInventory.vcenter?.vms?.total]);
+
+  const viewingScopeSummary = useMemo(() => {
+    const vmTotal = clusterView.viewVms?.total ?? 0;
+    const counts = buildViewingScopeCounts({
+      vmTotal,
+      showVcenterFilter: false,
+      selectedVcenterScopeId: ALL_VMS_GROUP_ID,
+      allVmsGroupId: ALL_VMS_GROUP_ID,
+      totalVcenterCount: 1,
+      selectedClusterId,
+      allClustersId: ALL_CLUSTERS_ID,
+      clustersInScope: clusters,
+    });
+    return formatReportScopeCounts(counts);
+  }, [clusterView.viewVms?.total, clusters, selectedClusterId]);
 
   const handleClusterSelect = (
     _event: React.MouseEvent<Element, MouseEvent> | undefined,
@@ -162,7 +191,10 @@ export function useExampleReportViewModel(): ExampleReportVM {
     clusters,
     clusterCount,
     clusterSelectDisabled,
-    detectedSummaryText,
+    inventoryScopeSummary,
+    viewingScopeSummary,
+    vcenterFilterView,
+    viewingGroupView: groupView,
     vcenterId,
     vcenterVersion,
     selectedClusterId,
@@ -170,7 +202,6 @@ export function useExampleReportViewModel(): ExampleReportVM {
     isClusterSelectOpen,
     setIsClusterSelectOpen,
     handleClusterSelect,
-    groupView,
     selectedGroupId,
     isGroupSelectOpen,
     setIsGroupSelectOpen,

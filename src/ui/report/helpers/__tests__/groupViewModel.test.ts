@@ -113,12 +113,12 @@ describe("computeClusterSelectDisabled", () => {
     expect(computeClusterSelectDisabled(0, false, ALL_VMS_GROUP_ID)).toBe(true);
   });
 
-  it("disables when all vCenters are selected and the group filter is shown", () => {
+  it("disables when all vCenters are selected", () => {
     expect(computeClusterSelectDisabled(3, true, ALL_VMS_GROUP_ID)).toBe(true);
     expect(computeClusterSelectDisabled(3, true, "group-1")).toBe(false);
   });
 
-  it("allows cluster selection when the group filter is hidden", () => {
+  it("allows cluster selection when the vCenter filter is hidden", () => {
     expect(computeClusterSelectDisabled(3, false, ALL_VMS_GROUP_ID)).toBe(
       false,
     );

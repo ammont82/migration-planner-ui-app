@@ -375,7 +375,7 @@ describe("useReportPageViewModel", () => {
   });
 
   describe("cluster selection", () => {
-    it("auto-selects largest cluster by VM count when clusters are present", () => {
+    it("defaults to all vSphere clusters when none is selected", () => {
       const assessment = createAssessment("assessment-1", {
         "Cluster-A": { infra: createInfra(2, 2), vms: createVMs(5) },
         "Cluster-B": { infra: createInfra(3, 3), vms: createVMs(7) },
@@ -383,7 +383,7 @@ describe("useReportPageViewModel", () => {
       mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
 
       const { result } = renderHook(() => useReportPageViewModel());
-      expect(result.current.selectedClusterId).toBe("Cluster-B");
+      expect(result.current.selectedClusterId).toBe(ALL_CLUSTERS_ID);
     });
 
     it("defaults to 'all' when no clusters exist", () => {
@@ -402,7 +402,7 @@ describe("useReportPageViewModel", () => {
       mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
 
       const { result } = renderHook(() => useReportPageViewModel());
-      expect(result.current.selectedClusterId).toBe("Cluster-B");
+      expect(result.current.selectedClusterId).toBe(ALL_CLUSTERS_ID);
 
       act(() => {
         result.current.selectCluster("Cluster-A");
@@ -429,7 +429,9 @@ describe("useReportPageViewModel", () => {
       mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
 
       const { result } = renderHook(() => useReportPageViewModel());
-      // Auto-selects first cluster
+      act(() => {
+        result.current.selectCluster("Cluster-A");
+      });
       expect(result.current.clusterView.isAggregateView).toBe(false);
       expect(result.current.clusterView.selectionId).toBe("Cluster-A");
     });
@@ -609,7 +611,7 @@ describe("useReportPageViewModel", () => {
         result.current.selectGroup("group-1");
       });
 
-      expect(result.current.exportDocumentTitle).toContain("Group (3 VMs)");
+      expect(result.current.exportDocumentTitle).toContain("Group 1");
     });
 
     it("stores sizing results by cluster id", () => {
@@ -998,7 +1000,7 @@ describe("useReportPageViewModel", () => {
       expect(result.current.clusterSelectDisabled).toBe(false);
     });
 
-    it("returns true when group filter is shown and all vCenters are selected", () => {
+    it("allows cluster selection when only the viewing group filter is shown", () => {
       const assessment = createAssessment("assessment-1", {
         "Cluster-A": { infra: createInfra(2, 2), vms: createVMs(5) },
         "Cluster-B": { infra: createInfra(3, 3), vms: createVMs(7) },
@@ -1038,7 +1040,7 @@ describe("useReportPageViewModel", () => {
 
       const { result } = renderHook(() => useReportPageViewModel());
       expect(result.current.selectedGroupId).toBe(ALL_VMS_GROUP_ID);
-      expect(result.current.clusterSelectDisabled).toBe(true);
+      expect(result.current.clusterSelectDisabled).toBe(false);
 
       act(() => {
         result.current.selectGroup("group-1");
@@ -1099,8 +1101,8 @@ describe("useReportPageViewModel", () => {
       const { result } = renderHook(() => useReportPageViewModel());
       expect(result.current.groupView.showGroupFilter).toBe(true);
       expect(result.current.groupView.groupOptions).toHaveLength(2);
-      expect(result.current.groupView.groupOptions[1].label).toBe(
-        "Group (3 VMs)",
+      expect(result.current.viewingGroupView.groupOptions[1].label).toBe(
+        "Group 1",
       );
 
       act(() => {
@@ -1147,11 +1149,13 @@ describe("useReportPageViewModel", () => {
       mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
 
       const { result } = renderHook(() => useReportPageViewModel());
-      expect(result.current.groupView.showGroupFilter).toBe(true);
-      expect(result.current.groupView.groupOptions.length).toBeGreaterThan(1);
+      expect(result.current.vcenterFilterView.showGroupFilter).toBe(true);
+      expect(
+        result.current.vcenterFilterView.groupOptions.length,
+      ).toBeGreaterThan(1);
     });
 
-    it("hides group filter for single-vCenter RVTools assessments", () => {
+    it("hides vCenter filter for single-vCenter RVTools assessments", () => {
       const assessment = createAssessment("assessment-1", {
         "Cluster-A": { infra: createInfra(2, 2), vms: createVMs(10) },
       });
@@ -1178,7 +1182,7 @@ describe("useReportPageViewModel", () => {
       mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
 
       const { result } = renderHook(() => useReportPageViewModel());
-      expect(result.current.groupView.showGroupFilter).toBe(false);
+      expect(result.current.vcenterFilterView.showGroupFilter).toBe(false);
       expect(result.current.clusterView.viewVms?.total).toBe(10);
     });
   });
@@ -1323,7 +1327,7 @@ describe("useReportPageViewModel", () => {
       const { result } = renderHook(() => useReportPageViewModel());
 
       act(() => {
-        result.current.selectGroup("group-2");
+        result.current.selectVcenterScope("group-2");
       });
 
       await act(async () => {
