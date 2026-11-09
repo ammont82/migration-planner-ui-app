@@ -66,7 +66,6 @@ export interface EnvironmentPageViewModel {
   fetchDownloadUrlForSource: (sourceId: string) => Promise<string>;
 
   // Assessments
-  getAssessmentsForSource: (sourceId: string) => AssessmentModel[];
   listAssessments: () => Promise<AssessmentModel[]>;
   isLoadingAssessments: boolean;
 
@@ -120,12 +119,6 @@ export const useEnvironmentPageViewModel = (): EnvironmentPageViewModel => {
       assessmentsStore.subscribe.bind(assessmentsStore),
       assessmentsStore.getSnapshot.bind(assessmentsStore),
     ) ?? EMPTY_ASSESSMENTS;
-
-  const getAssessmentsForSource = useCallback(
-    (sourceId: string): AssessmentModel[] =>
-      assessments.filter((assessment) => assessment.sourceId === sourceId),
-    [assessments],
-  );
 
   // ---- Local UI state ------------------------------------------------------
   const [sourceSelected, setSourceSelected] = useState<SourceModel | null>(
@@ -389,7 +382,6 @@ export const useEnvironmentPageViewModel = (): EnvironmentPageViewModel => {
   return {
     sources,
     assessments,
-    getAssessmentsForSource,
 
     sourceSelected,
     selectSource,

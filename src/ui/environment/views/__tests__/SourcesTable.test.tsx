@@ -210,13 +210,9 @@ const ALL_STATUS_SOURCES: SourceModel[] = [
 function makeBaseVm(
   overrides: Partial<EnvironmentPageViewModel> = {},
 ): EnvironmentPageViewModel {
-  const assessments = overrides.assessments ?? [];
-
   return {
     sources: ALL_STATUS_SOURCES,
-    assessments,
-    getAssessmentsForSource: (sourceId) =>
-      assessments.filter((assessment) => assessment.sourceId === sourceId),
+    assessments: [],
 
     sourceSelected: null,
     selectSource: vi.fn(),
@@ -348,7 +344,7 @@ describe("SourcesTable — all status states", () => {
     const table = screen.getByRole("grid", { name: "Sources table" });
     const dataRow = within(table).getAllByRole("row")[1];
     const cells = within(dataRow).getAllByRole("cell");
-    expect(cells[3]).toHaveTextContent("OVA downloaded");
+    expect(cells[2]).toHaveTextContent("OVA downloaded");
   });
 
   it('shows "N/A" for the agent version of an uploaded-manually source', () => {
@@ -369,7 +365,7 @@ describe("SourcesTable — all status states", () => {
     const dataRow = within(table).getAllByRole("row")[1];
     const cells = within(dataRow).getAllByRole("cell");
     // Agent version is the 3rd column (index 2)
-    expect(cells[3]).toHaveTextContent("N/A");
+    expect(cells[2]).toHaveTextContent("N/A");
   });
 
   it('shows "N/A" without a popover when uploaded manually, even if agentVersionWarning is set', () => {
@@ -391,9 +387,9 @@ describe("SourcesTable — all status states", () => {
     const table = screen.getByRole("grid", { name: "Sources table" });
     const dataRow = within(table).getAllByRole("row")[1];
     const cells = within(dataRow).getAllByRole("cell");
-    expect(cells[3]).toHaveTextContent("N/A");
+    expect(cells[2]).toHaveTextContent("N/A");
     expect(
-      within(cells[3]).queryByRole("button", { name: "Version information" }),
+      within(cells[2]).queryByRole("button", { name: "Version information" }),
     ).not.toBeInTheDocument();
   });
 
@@ -423,7 +419,11 @@ describe("SourcesTable — all status states", () => {
       within(row).queryByText("Production vCenter (up to date)"),
     );
     expect(readyRow).toBeDefined();
+
+    expect(within(readyRow!).getByText("8")).toBeInTheDocument(); // hosts
     expect(within(readyRow!).getByText("142")).toBeInTheDocument(); // VMs
+    expect(within(readyRow!).getByText("2")).toBeInTheDocument(); // networks
+    expect(within(readyRow!).getByText("3")).toBeInTheDocument(); // datastores
   });
 
   it('shows "-" for inventory columns when no inventory is available', () => {
@@ -439,8 +439,11 @@ describe("SourcesTable — all status states", () => {
     expect(ovaRow).toBeDefined();
 
     const cells = within(ovaRow!).getAllByRole("cell");
-    // VMs (4) should be "-"
+    // Hosts (index 3), VMs (4), Networks (5), Datastores (6) should all be "-"
+    expect(cells[3]).toHaveTextContent("-");
     expect(cells[4]).toHaveTextContent("-");
+    expect(cells[5]).toHaveTextContent("-");
+    expect(cells[6]).toHaveTextContent("-");
   });
 
   // --- Empty state --------------------------------------------------------

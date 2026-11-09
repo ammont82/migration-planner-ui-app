@@ -25,8 +25,8 @@ import {
 } from "../helpers/assessmentSource";
 import { useAssessmentPageViewModel } from "../view-models/useAssessmentPageViewModel";
 import AssessmentEmptyState from "./AssessmentEmptyState";
-import { AssessmentsList } from "./AssessmentsList";
 import {
+  AssessmentsTable,
   COLUMN_MANAGEMENT_METADATA,
   type ColumnKey,
   Columns,
@@ -350,7 +350,7 @@ export const AssessmentsPage: React.FC<AssessmentsPageProps> = ({
         <AssessmentEmptyState onOpenModal={handleOpenModal} />
       ) : (
         <div className={tableContainerStyle}>
-          <AssessmentsList
+          <AssessmentsTable
             assessments={assessments}
             search={search}
             sortBy={sortBy}
