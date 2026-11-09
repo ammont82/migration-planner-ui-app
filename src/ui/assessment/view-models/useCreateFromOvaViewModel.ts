@@ -171,7 +171,9 @@ export const useCreateFromOvaViewModel = (): CreateFromOvaViewModel => {
       throw new Error("Unexpected response while creating assessment.");
     }
 
-    await assessmentsStore.list();
+    // create() already updates the store; avoid blocking navigation on list().
+    // List refresh can fail for some shared appliance sources while create succeeds.
+    void assessmentsStore.list().catch(() => undefined);
     void navigate(routes.assessmentReport(assessment.id));
     setName("");
     setUseExisting(false);

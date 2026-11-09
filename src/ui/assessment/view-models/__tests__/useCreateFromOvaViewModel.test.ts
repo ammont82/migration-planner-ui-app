@@ -290,6 +290,31 @@ describe("useCreateFromOvaViewModel", () => {
     );
   });
 
+  it("handleSubmit navigates when list refresh fails after create", async () => {
+    mockAssessmentsStore.create.mockResolvedValue({ id: "a-shared" });
+    mockAssessmentsStore.list.mockRejectedValue(
+      new Error("failed to list assessments: record not found"),
+    );
+    const source = makeSource({ id: "s-shared" });
+    mockEnvVm.sources = [source];
+
+    const { result } = renderHook(() => useCreateFromOvaViewModel());
+
+    act(() => {
+      result.current.setName("Shared appliance assessment");
+      result.current.setUseExisting(true);
+      result.current.setSelectedEnvironmentId("s-shared");
+    });
+
+    await act(async () => {
+      await result.current.handleSubmit();
+    });
+
+    expect(mockAssessmentsStore.create).toHaveBeenCalled();
+    expect(result.current.hasGeneralApiError).toBe(false);
+    expect(mockNavigate).toHaveBeenCalledWith("/assessments/a-shared/report");
+  });
+
   it("handleSubmit does nothing when no sourceId is available", async () => {
     mockEnvVm.sourceCreatedId = null;
 
