@@ -2,11 +2,11 @@
   "1244623": {
     "active": true,
     "notes": "minimatch GHSA-g3hv-75wg-m249 (DoS via globparts): fix is minimatch >= 11.0.1 but min-release-age=7 blocks fresh releases. Dev-only chain (eslint, webpack tooling). Re-evaluate at expiry: add package.json override once versions age out. (Advisory ID superseded 1244012.)",
-    "expiry": "2026-11-10"
+    "expiry": "2026-11-24"
   },
   "1244013": {
     "active": true,
     "notes": "glob GHSA-3g3m-2fjr-6pw4 (AbortSignal bypass): fix is glob > 14.0.1 but min-release-age=7 blocks fresh releases. Dev-only chain (rimraf, sentry plugin, tsc-transform-imports). Re-evaluate at expiry.",
-    "expiry": "2026-11-10"
+    "expiry": "2026-11-24"
   }
 }
