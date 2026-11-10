@@ -48,6 +48,11 @@ const detailRowStyle = css`
   }
 `;
 
+const sampleLinkStyle = css`
+  position: relative;
+  z-index: 1;
+`;
+
 type AssessmentMethodCardProps = {
   id: string;
   title: string;
@@ -129,7 +134,13 @@ export const AssessmentMethodCard: React.FC<AssessmentMethodCardProps> = ({
           <DescriptionListGroup className={detailRowStyle}>
             <DescriptionListTerm>Sample assessment</DescriptionListTerm>
             <DescriptionListDescription>
-              <Link to={sampleLink.to}>{sampleLink.label}</Link>
+              <Link
+                to={sampleLink.to}
+                className={sampleLinkStyle}
+                onClick={(event) => event.stopPropagation()}
+              >
+                {sampleLink.label}
+              </Link>
             </DescriptionListDescription>
           </DescriptionListGroup>
         </DescriptionList>
