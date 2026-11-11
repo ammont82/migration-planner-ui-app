@@ -23,6 +23,8 @@ import { mockClusterRequirementsResponse } from "../../views/cluster-sizer/__tes
 import { EXAMPLE_FORM_VALUES } from "../../views/example-data/clusterSizingFixture";
 import type { SizingPdfData } from "../useReportPageViewModel";
 import { useReportPageViewModel } from "../useReportPageViewModel";
+import type { UseReportRvtoolsUploadJobArgs } from "../useReportRvtoolsUploadJob";
+import { useReportRvtoolsUploadJob } from "../useReportRvtoolsUploadJob";
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -1336,5 +1338,29 @@ describe("useReportPageViewModel", () => {
       );
       expect(result.current.vms?.total).toBe(2);
     });
+  });
+});
+
+describe("RVTools backend messages", () => {
+  it.each([
+    "Invalid workbook: missing required data",
+    "First issue: missing VM ID\nSecond issue: missing VM name",
+  ])("preserves report-upload errors unchanged: %s", (message) => {
+    const args = {
+      assessmentId: "assessment-1",
+      canAppendRvtoolsFiles: true,
+      jobsStore: {
+        stopPolling: vi.fn(),
+        reset: vi.fn(),
+      },
+      assessmentsStore: {},
+      persistenceStore: {},
+      jobState: {
+        currentJob: { id: 1, status: "failed", error: message },
+        isCreating: false,
+      },
+    } as unknown as UseReportRvtoolsUploadJobArgs;
+    const { result } = renderHook(() => useReportRvtoolsUploadJob(args));
+    expect(result.current.jobError?.message).toBe(message);
   });
 });

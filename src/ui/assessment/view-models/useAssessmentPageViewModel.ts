@@ -41,13 +41,6 @@ import {
 
 const VISIBLE_COLUMNS_KEY = "migration-advisor:visible-columns";
 
-const extractErrorMessage = (message: string): string => {
-  const lastColonIndex = message.lastIndexOf(":");
-  return lastColonIndex !== -1
-    ? message.slice(lastColonIndex + 1).trim()
-    : message;
-};
-
 // ---------------------------------------------------------------------------
 // View-model interface
 // ---------------------------------------------------------------------------
@@ -370,7 +363,7 @@ export const useAssessmentPageViewModel = (): AssessmentPageViewModel => {
 
   const jobError = useMemo(() => {
     return currentJob?.status === JobStatus.Failed
-      ? new Error(extractErrorMessage(currentJob.error || "Processing failed"))
+      ? new Error(currentJob.error || "Processing failed")
       : null;
   }, [currentJob]);
 

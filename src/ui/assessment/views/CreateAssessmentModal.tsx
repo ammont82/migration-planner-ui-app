@@ -1,3 +1,4 @@
+import { css } from "@emotion/css";
 import {
   Alert,
   Button,
@@ -460,7 +461,11 @@ export const CreateAssessmentModal: React.FC<CreateAssessmentModalProps> = ({
           <Alert
             variant="danger"
             title="Failed to create assessment"
-            style={{ marginTop: "16px", marginBottom: "0" }}
+            className={css({
+              whiteSpace: "pre-line",
+              marginTop: "16px",
+              marginBottom: "0",
+            })}
             isInline
           >
             {effectiveError?.message ||

@@ -21,13 +21,6 @@ import {
 
 type JobsStoreSnapshot = ReturnType<IJobsStore["getSnapshot"]>;
 
-const extractJobErrorMessage = (message: string): string => {
-  const lastColonIndex = message.lastIndexOf(":");
-  return lastColonIndex !== -1
-    ? message.slice(lastColonIndex + 1).trim()
-    : message;
-};
-
 export type UseReportRvtoolsUploadJobArgs = {
   assessmentId: string | undefined;
   canAppendRvtoolsFiles: boolean;
@@ -332,9 +325,7 @@ export const useReportRvtoolsUploadJob = ({
 
   const jobError = useMemo(() => {
     return currentJob?.status === JobStatus.Failed
-      ? new Error(
-          extractJobErrorMessage(currentJob.error || "Processing failed"),
-        )
+      ? new Error(currentJob.error || "Processing failed")
       : null;
   }, [currentJob]);
 

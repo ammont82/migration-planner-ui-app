@@ -163,6 +163,18 @@ describe("useAssessmentPageViewModel", () => {
     expect(result.current.updateError).toBeUndefined();
   });
 
+  it.each([
+    "Invalid workbook: missing required data",
+    "First issue: missing VM ID\nSecond issue: missing VM name",
+  ])("preserves the complete backend error: %s", (message) => {
+    jobsStoreState.currentJob = makeJob({
+      status: JobStatus.Failed,
+      error: message,
+    });
+    const { result } = renderHook(() => useAssessmentPageViewModel());
+    expect(result.current.jobError?.message).toBe(message);
+  });
+
   it("exposes identity for a regular user", () => {
     const regularUser: Identity = {
       username: "user-1",
