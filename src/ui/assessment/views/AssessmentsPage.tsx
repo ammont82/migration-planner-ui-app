@@ -6,7 +6,6 @@ import {
   Button,
   Toolbar,
   ToolbarContent,
-  ToolbarGroup,
   ToolbarItem,
 } from "@patternfly/react-core";
 import { RhUiColumnsIcon } from "@patternfly/react-icons";
@@ -330,18 +329,17 @@ export const AssessmentsPage: React.FC<AssessmentsPageProps> = ({
                 variant="control"
                 icon={<RhUiColumnsIcon />}
                 onClick={() => setIsColumnModalOpen(true)}
-              ></Button>
+                aria-label="Manage columns"
+              />
             </ToolbarItem>
-            <ToolbarGroup align={{ default: "alignStart", lg: "alignEnd" }}>
-              <ToolbarItem>
-                <Button
-                  variant="primary"
-                  onClick={() => handleOpenModal("rvtools")}
-                >
-                  Create RVTools assessment
-                </Button>
-              </ToolbarItem>
-            </ToolbarGroup>
+            <ToolbarItem>
+              <Button
+                variant="primary"
+                onClick={() => handleOpenModal("rvtools")}
+              >
+                Create RVTools assessment
+              </Button>
+            </ToolbarItem>
           </ToolbarContent>
         </Toolbar>
       )}

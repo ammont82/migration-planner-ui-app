@@ -106,7 +106,7 @@ type SourceTableProps = {
   uploadOnly?: boolean;
   onEditEnvironment?: (sourceId: string) => void;
   onAddEnvironment?: () => void;
-  onCreateAssessment?: () => void;
+  onCreateAssessment?: (sourceId?: string) => void;
   onDownloadOva?: (sourceId: string) => void;
 };
 
@@ -339,12 +339,8 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
     });
   };
 
-  const handleCreateAssessment = (sourceId: string): void => {
-    vm.setAssessmentFromAgent?.(true);
-    vm.selectSourceById?.(sourceId);
-    void navigate(routes.assessmentCreate, {
-      state: { preselectedSourceId: sourceId },
-    });
+  const handleCreateAssessment = (): void => {
+    onCreateAssessment?.();
   };
 
   // Show empty state if no sources
@@ -405,7 +401,10 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
 
           {hasSources && onCreateAssessment ? (
             <ToolbarItem>
-              <Button variant="secondary" onClick={onCreateAssessment}>
+              <Button
+                variant="secondary"
+                onClick={() => onCreateAssessment?.()}
+              >
                 Create assessment
               </Button>
             </ToolbarItem>
@@ -572,11 +571,13 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                         )}
                       >
                         <DropdownList>
-                          <DropdownItem
-                            onClick={() => handleCreateAssessment(source.id)}
-                          >
-                            Create assessment
-                          </DropdownItem>
+                          {onCreateAssessment ? (
+                            <DropdownItem
+                              onClick={() => handleCreateAssessment()}
+                            >
+                              Create assessment
+                            </DropdownItem>
+                          ) : null}
                           <DropdownItem
                             isDisabled={!onDownloadOva}
                             onClick={() => {
@@ -630,9 +631,7 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                     <ExpandableRowContent hasNoBackground>
                       <SourceAssessmentsCard
                         source={source}
-                        onCreateAssessment={(source) =>
-                          handleCreateAssessment(source.id)
-                        }
+                        onCreateAssessment={() => handleCreateAssessment()}
                       />
                     </ExpandableRowContent>
                   </Td>
