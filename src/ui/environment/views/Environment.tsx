@@ -7,14 +7,13 @@ import {
   StackItem,
 } from "@patternfly/react-core";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
-import { routes } from "../../../routing/Routes";
 import { LoadingSpinner } from "../../core/components/LoadingSpinner";
 import { safeExternalUrl } from "../../core/utils/urlValidation";
 import { useEnvironmentPage } from "../view-models/EnvironmentPageContext";
 import type { EnvironmentPageViewModel } from "../view-models/useEnvironmentPageViewModel";
 import {
+  CreateDiscoveryAssessmentModal,
   DownloadEnvironmentModal,
   EnvironmentModal,
 } from "./environment-modals";
@@ -25,8 +24,9 @@ type EnvironmentContentProps = {
 };
 
 const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
-  const navigate = useNavigate();
   const [shouldShowCreateModal, setShouldShowCreateModal] = useState(false);
+  const [isCreateAssessmentModalOpen, setIsCreateAssessmentModalOpen] =
+    useState(false);
   const [shouldShowEditModal, setShouldShowEditModal] = useState(false);
   const [shouldShowDownloadModal, setShouldShowDownloadModal] = useState(false);
   const [editSourceId, setEditSourceId] = useState<string | null>(null);
@@ -156,7 +156,18 @@ const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
           setShouldShowDownloadModal(true);
         }}
         onCreateAssessment={() => {
-          void navigate(routes.assessmentCreate);
+          setIsCreateAssessmentModalOpen(true);
+        }}
+      />
+
+      <CreateDiscoveryAssessmentModal
+        isOpen={isCreateAssessmentModalOpen}
+        onClose={() => {
+          setIsCreateAssessmentModalOpen(false);
+        }}
+        sources={vm.sources}
+        onInventoryUploaded={() => {
+          void vm.listSources();
         }}
       />
 

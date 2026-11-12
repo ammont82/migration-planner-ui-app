@@ -1,3 +1,5 @@
+export type { CreateDiscoveryAssessmentModalProps } from "./CreateDiscoveryAssessmentModal";
+export { CreateDiscoveryAssessmentModal } from "./CreateDiscoveryAssessmentModal";
 export type { DownloadEnvironmentModalProps } from "./DownloadEnvironmentModal";
 export { DownloadEnvironmentModal } from "./DownloadEnvironmentModal";
 export type {
