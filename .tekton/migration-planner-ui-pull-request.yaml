@@ -8,7 +8,7 @@ metadata:
     build.appstudio.redhat.com/target_branch: "{{target_branch}}"
     pipelinesascode.tekton.dev/cancel-in-progress: "true"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && (target_branch == "master" || target_branch.startsWith("release-"))
+    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && (target_branch == "master" || target_branch == "stable")
   creationTimestamp:
   labels:
     appstudio.openshift.io/application: assisted-migration
@@ -221,7 +221,7 @@ spec:
           - name: BUILD_ARGS
             value:
               - $(params.build-args[*])
-              - APP_VERSION={{target_branch}}-pull-request
+              - APP_VERSION=on-pr-{{revision}}
           - name: PRIVILEGED_NESTED
             value: $(params.privileged-nested)
           - name: BUILDAH_FORMAT
