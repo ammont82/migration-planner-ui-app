@@ -47,20 +47,12 @@ const ExampleReport: React.FC = () => {
             This is an example report showcasing the migration advisor dashboard
             for RVTools file upload.
           </StackItem>
-          <StackItem>{vm.detectedSummaryText}</StackItem>
           <StackItem>
-            <ReportFilterBar
-              clusterView={vm.clusterView}
-              clusterSelectDisabled={vm.clusterSelectDisabled}
-              isClusterSelectOpen={vm.isClusterSelectOpen}
-              onClusterSelectOpenChange={vm.setIsClusterSelectOpen}
-              onClusterSelect={vm.handleClusterSelect}
-              groupView={vm.groupView}
-              isGroupSelectOpen={vm.isGroupSelectOpen}
-              onGroupSelectOpenChange={vm.setIsGroupSelectOpen}
-              onGroupSelect={vm.handleGroupSelect}
-              groupFilterComingSoon
-            />
+            {vm.inventoryScopeSummary ? (
+              <>Inventory: {vm.inventoryScopeSummary}</>
+            ) : (
+              "No clusters detected"
+            )}
           </StackItem>
         </Stack>
       }
@@ -94,26 +86,46 @@ const ExampleReport: React.FC = () => {
         aria-label="Migration report"
       >
         <TabContentBody>
-          {vm.clusterView.viewInfra &&
-          vm.clusterView.viewVms &&
-          vm.clusterView.cpuCores &&
-          vm.clusterView.ramGB ? (
-            <Dashboard
-              infra={vm.clusterView.viewInfra}
-              cpuCores={vm.clusterView.cpuCores}
-              ramGB={vm.clusterView.ramGB}
-              vms={vm.clusterView.viewVms}
-              clusters={vm.clusterView.viewClusters}
-              isAggregateView={vm.clusterView.isAggregateView}
-              clusterFound={vm.clusterView.clusterFound}
-              vcenterVersion={vm.vcenterVersion}
-              vcenterId={vm.vcenterId}
-            />
-          ) : (
-            <Content component={ContentVariants.p}>
-              No data is available for the selected cluster.
-            </Content>
-          )}
+          <Stack hasGutter>
+            <StackItem>
+              <ReportFilterBar
+                clusterView={vm.clusterView}
+                clusterSelectDisabled={vm.clusterSelectDisabled}
+                isClusterSelectOpen={vm.isClusterSelectOpen}
+                onClusterSelectOpenChange={vm.setIsClusterSelectOpen}
+                onClusterSelect={vm.handleClusterSelect}
+                viewingGroupView={vm.viewingGroupView}
+                isViewingGroupSelectOpen={vm.isGroupSelectOpen}
+                onViewingGroupSelectOpenChange={vm.setIsGroupSelectOpen}
+                onViewingGroupSelect={vm.handleGroupSelect}
+                vcenterView={vm.vcenterFilterView}
+                viewingGroupFilterComingSoon
+                viewingScopeSummary={vm.viewingScopeSummary}
+              />
+            </StackItem>
+            <StackItem>
+              {vm.clusterView.viewInfra &&
+              vm.clusterView.viewVms &&
+              vm.clusterView.cpuCores &&
+              vm.clusterView.ramGB ? (
+                <Dashboard
+                  infra={vm.clusterView.viewInfra}
+                  cpuCores={vm.clusterView.cpuCores}
+                  ramGB={vm.clusterView.ramGB}
+                  vms={vm.clusterView.viewVms}
+                  clusters={vm.clusterView.viewClusters}
+                  isAggregateView={vm.clusterView.isAggregateView}
+                  clusterFound={vm.clusterView.clusterFound}
+                  vcenterVersion={vm.vcenterVersion}
+                  vcenterId={vm.vcenterId}
+                />
+              ) : (
+                <Content component={ContentVariants.p}>
+                  No data is available for the selected cluster.
+                </Content>
+              )}
+            </StackItem>
+          </Stack>
         </TabContentBody>
       </TabContent>
       <TabContent

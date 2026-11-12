@@ -8,9 +8,13 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildClustersMapForOptions,
+  clusterIdsFromReportInventory,
   clusterIdsFromVcenterV2,
+  mergeClusterIds,
+  resolveEmbeddedClusterInventory,
   vcenterV2ToReportSource,
 } from "../assessmentV2Inventory";
+import type { ReportInventorySource } from "../groupInventoryFilter";
 
 describe("assessmentV2Inventory", () => {
   const vcenter: AssessmentVCenterV2 = {
@@ -41,6 +45,37 @@ describe("assessmentV2Inventory", () => {
       "cluster-a",
       "cluster-b",
     ]);
+  });
+
+  it("merges cluster ids from v2 response and embedded inventory", () => {
+    const snapshot: ReportInventorySource = {
+      clusters: {
+        "cluster-snapshot": { vms: { total: 2 } as VMs } as InventoryData,
+      },
+    };
+    expect(
+      mergeClusterIds(
+        clusterIdsFromVcenterV2(vcenter),
+        clusterIdsFromReportInventory(snapshot),
+      ),
+    ).toEqual(["cluster-a", "cluster-b", "cluster-snapshot"]);
+  });
+
+  it("reads embedded cluster inventory from snapshot maps", () => {
+    const snapshot: ReportInventorySource = {
+      clusters: {
+        "cluster-snapshot": {
+          infra: { totalHosts: 1 } as Infra,
+          vms: { total: 2 } as VMs,
+        },
+      },
+    };
+    expect(
+      resolveEmbeddedClusterInventory(snapshot, "cluster-snapshot")?.vms?.total,
+    ).toBe(2);
+    expect(
+      resolveEmbeddedClusterInventory(snapshot, "missing"),
+    ).toBeUndefined();
   });
 
   it("builds cluster map with placeholders for unloaded clusters", () => {

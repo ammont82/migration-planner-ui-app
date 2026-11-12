@@ -43,3 +43,43 @@ export const buildClustersMapForOptions = (
   }
   return map;
 };
+
+/** Cluster ids from embedded assessment / subset snapshot inventory. */
+export const clusterIdsFromReportInventory = (
+  inventory: ReportInventorySource | undefined,
+): string[] => {
+  const clusters = inventory?.clusters;
+  if (!clusters) {
+    return [];
+  }
+  return Object.keys(clusters);
+};
+
+export const mergeClusterIds = (...idLists: string[][]): string[] => {
+  const seen = new Set<string>();
+  const merged: string[] = [];
+  for (const ids of idLists) {
+    for (const clusterId of ids) {
+      if (!seen.has(clusterId)) {
+        seen.add(clusterId);
+        merged.push(clusterId);
+      }
+    }
+  }
+  return merged;
+};
+
+const clusterInventoryHasPayload = (data: InventoryData): boolean =>
+  Boolean(data.infra || data.vms);
+
+/** Snapshot cluster payload used when v2 per-cluster GET is unavailable. */
+export const resolveEmbeddedClusterInventory = (
+  inventory: ReportInventorySource | undefined,
+  clusterId: string,
+): InventoryData | undefined => {
+  const cluster = inventory?.clusters?.[clusterId];
+  if (!cluster || !clusterInventoryHasPayload(cluster)) {
+    return undefined;
+  }
+  return cluster;
+};

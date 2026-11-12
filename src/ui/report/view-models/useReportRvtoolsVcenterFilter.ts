@@ -16,13 +16,11 @@ export const useReportRvtoolsVcenterFilter = ({
   assessmentSourceType,
   subsetInventoriesFromSnapshot,
   resetClusterSelection,
-  setIsGroupSelectOpen,
 }: {
   assessmentId: string | undefined;
   assessmentSourceType: string | undefined;
   subsetInventoriesFromSnapshot: AssessmentSubsetInventory[] | undefined;
   resetClusterSelection: () => void;
-  setIsGroupSelectOpen: (open: boolean) => void;
 }): {
   rvtoolsSubsetInventories: AssessmentSubsetInventory[];
   rvtoolsEffectiveVcenterSubsetId: string;
@@ -30,7 +28,10 @@ export const useReportRvtoolsVcenterFilter = ({
   rvtoolsVcenterFilterView: GroupViewModel;
   userSelectedRvtoolsVcenterSubsetId: string | null;
   selectRvtoolsVcenterSubset: (groupId: string) => void;
+  isVcenterSelectOpen: boolean;
+  setVcenterSelectOpen: (open: boolean) => void;
 } => {
+  const [isVcenterSelectOpen, setVcenterSelectOpen] = useState(false);
   const rvtoolsSubsetInventories = useMemo(
     (): AssessmentSubsetInventory[] =>
       rvtoolsSubsetInventoriesFromSnapshot(
@@ -83,9 +84,9 @@ export const useReportRvtoolsVcenterFilter = ({
     (groupId: string) => {
       setUserSelectedRvtoolsVcenterSubsetId(groupId);
       resetClusterSelection();
-      setIsGroupSelectOpen(false);
+      setVcenterSelectOpen(false);
     },
-    [resetClusterSelection, setIsGroupSelectOpen],
+    [resetClusterSelection],
   );
 
   return {
@@ -95,5 +96,7 @@ export const useReportRvtoolsVcenterFilter = ({
     rvtoolsVcenterFilterView,
     userSelectedRvtoolsVcenterSubsetId,
     selectRvtoolsVcenterSubset,
+    isVcenterSelectOpen,
+    setVcenterSelectOpen,
   };
 };

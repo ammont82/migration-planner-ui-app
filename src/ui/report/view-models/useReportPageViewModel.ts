@@ -41,8 +41,15 @@ import {
 } from "../helpers/groupInventoryFilter";
 import {
   ALL_VMS_GROUP_ID,
+  buildGroupViewModel,
   computeClusterSelectDisabled,
+  type GroupViewModel,
 } from "../helpers/groupViewModel";
+import {
+  buildInventoryScopeCounts,
+  buildViewingScopeCounts,
+  formatReportScopeCounts,
+} from "../helpers/reportScopeSummary";
 import {
   isControlPlaneOnlyClusterMode,
   type SizingFormValues,
@@ -68,6 +75,10 @@ import { useReportRvtoolsPersistence } from "./useReportRvtoolsPersistence";
 import { useReportRvtoolsUploadJob } from "./useReportRvtoolsUploadJob";
 import { useReportRvtoolsVcenterFilter } from "./useReportRvtoolsVcenterFilter";
 import { useReportV2InventoryScope } from "./useReportV2InventoryScope";
+import {
+  countEmbeddedClustersAcrossSubsets,
+  useRvtoolsAllVcentersClusterCount,
+} from "./useRvtoolsAllVcentersClusterCount";
 
 // ---------------------------------------------------------------------------
 // Sizing → PDF page builder
@@ -227,6 +238,8 @@ export interface ReportPageViewModel {
   assessment: AssessmentLike | undefined;
   source: SourceModel | undefined;
   isInitialLoading: boolean;
+  /** True while scoped v2 inventory is loading after filter changes (not full-page). */
+  isReportInventoryLoading: boolean;
 
   // Cluster view
   clusterView: ClusterViewModel;
@@ -236,12 +249,25 @@ export interface ReportPageViewModel {
   setClusterSelectOpen: (open: boolean) => void;
   clusterSelectDisabled: boolean;
 
-  // Group view (subset inventories from GET assessment)
-  groupView: ReturnType<typeof useGroupInventoryFilter>["groupView"];
+  // VM group filter (subset inventories; independent from vCenter scope)
+  viewingGroupView: GroupViewModel;
   selectedGroupId: string;
   selectGroup: (groupId: string) => void;
   isGroupSelectOpen: boolean;
   setGroupSelectOpen: (open: boolean) => void;
+
+  // vCenter filter (multi-vCenter RVTools assessments)
+  vcenterFilterView: GroupViewModel;
+  selectedVcenterScopeId: string;
+  selectVcenterScope: (subsetId: string) => void;
+  isVcenterSelectOpen: boolean;
+  setVcenterSelectOpen: (open: boolean) => void;
+
+  inventoryScopeSummary?: string;
+  viewingScopeSummary?: string;
+
+  /** @deprecated Use viewingGroupView or vcenterFilterView */
+  groupView: GroupViewModel;
 
   // Computed data from latest snapshot
   infra: Infra | undefined;
@@ -494,13 +520,14 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
     scopedVcenterApiId,
     rvtoolsVcenterFilterView,
     selectRvtoolsVcenterSubset,
+    isVcenterSelectOpen,
+    setVcenterSelectOpen,
   } = useReportRvtoolsVcenterFilter({
     assessmentId: id,
     assessmentSourceType: assessment?.sourceType,
     subsetInventoriesFromSnapshot:
       latestSnapshot.subsetInventories ?? undefined,
     resetClusterSelection,
-    setIsGroupSelectOpen,
   });
 
   const {
@@ -525,6 +552,24 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
 
   const useV2ReportInventory = assessment?.sourceType === "rvtools";
 
+  const scopedRvtoolsSubsetInventory = useMemo(():
+    ReportInventorySource | undefined => {
+    if (!useV2ReportInventory) {
+      return undefined;
+    }
+    if (rvtoolsEffectiveVcenterSubsetId === ALL_VMS_GROUP_ID) {
+      return undefined;
+    }
+    const subset = rvtoolsSubsetInventories.find(
+      (entry) => entry.id === rvtoolsEffectiveVcenterSubsetId,
+    );
+    return subset?.inventory;
+  }, [
+    rvtoolsEffectiveVcenterSubsetId,
+    rvtoolsSubsetInventories,
+    useV2ReportInventory,
+  ]);
+
   const {
     activeInventory: v2ScopedInventory,
     inventoryLoading,
@@ -535,7 +580,9 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
     assessmentId: id,
     userSelectedClusterId,
     scopedVcenterApiId,
+    scopedSubsetInventory: scopedRvtoolsSubsetInventory,
     aggregateInventory: fullInventory,
+    allowAggregateClusterFallback: rvtoolsSubsetInventories.length <= 1,
     assessmentsStore,
   });
 
@@ -556,11 +603,45 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
     [latestSnapshot],
   );
 
-  const reportSummaryClusterCount = useMemo(() => {
+  const snapshotClusterCount = useMemo(() => {
     const summaryClusters = latestSnapshot.inventory?.clusters as
       { [key: string]: InventoryData } | undefined;
     return summaryClusters ? Object.keys(summaryClusters).length : 0;
   }, [latestSnapshot.inventory?.clusters]);
+
+  const totalVcenterCount = useMemo(() => {
+    if (rvtoolsSubsetInventories.length > 0) {
+      return rvtoolsSubsetInventories.length;
+    }
+    return 1;
+  }, [rvtoolsSubsetInventories.length]);
+
+  const showVcenterFilter =
+    useV2ReportInventory && rvtoolsSubsetInventories.length > 1;
+
+  const allVcentersClusterCount = useRvtoolsAllVcentersClusterCount({
+    enabled: showVcenterFilter,
+    assessmentId: id,
+    subsets: rvtoolsSubsetInventories,
+    assessmentsStore,
+  });
+
+  const reportSummaryClusterCount = useMemo(() => {
+    if (snapshotClusterCount > 0) {
+      return snapshotClusterCount;
+    }
+    if (allVcentersClusterCount != null && allVcentersClusterCount > 0) {
+      return allVcentersClusterCount;
+    }
+    return countEmbeddedClustersAcrossSubsets(rvtoolsSubsetInventories);
+  }, [allVcentersClusterCount, rvtoolsSubsetInventories, snapshotClusterCount]);
+
+  const vcenterFilterView = useMemo(() => {
+    if (!showVcenterFilter) {
+      return buildGroupViewModel({ subsetInventories: [] });
+    }
+    return rvtoolsVcenterFilterView;
+  }, [rvtoolsVcenterFilterView, showVcenterFilter]);
 
   // ---- Cluster selection ---------------------------------------------------
   const selectedClusterId = useMemo(
@@ -630,46 +711,18 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
 
   const clusterSelectDisabled = computeClusterSelectDisabled(
     clusterView.clusterOptions.length,
-    groupView.showGroupFilter ||
-      (useV2ReportInventory && rvtoolsSubsetInventories.length > 1),
-    groupView.showGroupFilter
-      ? selectedGroupId
-      : rvtoolsEffectiveVcenterSubsetId,
+    showVcenterFilter,
+    rvtoolsEffectiveVcenterSubsetId,
   );
 
-  const reportFilterGroupView = useMemo(() => {
-    if (groupView.showGroupFilter) {
-      return groupView;
-    }
-    if (useV2ReportInventory && rvtoolsSubsetInventories.length > 1) {
-      return { ...rvtoolsVcenterFilterView, showGroupFilter: true };
-    }
-    return groupView;
-  }, [
-    groupView,
-    rvtoolsSubsetInventories.length,
-    rvtoolsVcenterFilterView,
-    useV2ReportInventory,
-  ]);
-
-  const selectReportFilterGroup = useCallback(
-    (groupId: string) => {
-      if (groupView.showGroupFilter) {
-        selectGroup(groupId);
-        return;
-      }
-      if (useV2ReportInventory && rvtoolsSubsetInventories.length > 1) {
-        selectRvtoolsVcenterSubset(groupId);
-      }
-    },
-    [
-      groupView.showGroupFilter,
-      rvtoolsSubsetInventories.length,
-      selectGroup,
-      selectRvtoolsVcenterSubset,
-      useV2ReportInventory,
-    ],
-  );
+  const inventoryScopeSummary = useMemo(() => {
+    const counts = buildInventoryScopeCounts({
+      vmTotal: reportSummaryVms?.total,
+      vcenterCount: totalVcenterCount,
+      clusterCount: reportSummaryClusterCount,
+    });
+    return counts ? formatReportScopeCounts(counts) : undefined;
+  }, [reportSummaryClusterCount, reportSummaryVms?.total, totalVcenterCount]);
 
   // ---- Scoped cluster view -------------------------------------------------
   const isClusterScopedData = useCallback(
@@ -681,6 +734,37 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
   const scopedClusterView = isClusterScopedData(clusterView)
     ? clusterView
     : undefined;
+
+  const viewingScopeSummary = useMemo(() => {
+    const vmTotal = scopedClusterView?.viewVms?.total ?? vms?.total ?? 0;
+    const counts = buildViewingScopeCounts({
+      vmTotal,
+      showVcenterFilter,
+      selectedVcenterScopeId: rvtoolsEffectiveVcenterSubsetId,
+      allVmsGroupId: ALL_VMS_GROUP_ID,
+      totalVcenterCount,
+      selectedClusterId,
+      allClustersId: ALL_CLUSTERS_ID,
+      clustersInScope: clusters,
+    });
+    const clusterCount =
+      showVcenterFilter &&
+      rvtoolsEffectiveVcenterSubsetId === ALL_VMS_GROUP_ID &&
+      counts.clusterCount === 0 &&
+      reportSummaryClusterCount > 0
+        ? reportSummaryClusterCount
+        : counts.clusterCount;
+    return formatReportScopeCounts({ ...counts, clusterCount });
+  }, [
+    clusters,
+    reportSummaryClusterCount,
+    rvtoolsEffectiveVcenterSubsetId,
+    scopedClusterView?.viewVms?.total,
+    selectedClusterId,
+    showVcenterFilter,
+    totalVcenterCount,
+    vms?.total,
+  ]);
 
   // ---- Resource checks -----------------------------------------------------
   const canShowClusterRecommendations = hasClusterResources(
@@ -794,9 +878,8 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
 
     assessment,
     source,
-    isInitialLoading:
-      (fetchState.loading && !assessment) ||
-      (useV2ReportInventory && inventoryLoading && !v2ScopedInventory),
+    isInitialLoading: fetchState.loading && !assessment,
+    isReportInventoryLoading: useV2ReportInventory && inventoryLoading,
 
     clusterView,
     selectedClusterId,
@@ -805,13 +888,22 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
     setClusterSelectOpen: setIsClusterSelectOpen,
     clusterSelectDisabled,
 
-    groupView: reportFilterGroupView,
-    selectedGroupId: groupView.showGroupFilter
-      ? selectedGroupId
-      : rvtoolsEffectiveVcenterSubsetId,
-    selectGroup: selectReportFilterGroup,
+    viewingGroupView: groupView,
+    selectedGroupId,
+    selectGroup,
     isGroupSelectOpen,
     setGroupSelectOpen: setIsGroupSelectOpen,
+
+    vcenterFilterView,
+    selectedVcenterScopeId: rvtoolsEffectiveVcenterSubsetId,
+    selectVcenterScope: selectRvtoolsVcenterSubset,
+    isVcenterSelectOpen,
+    setVcenterSelectOpen,
+
+    inventoryScopeSummary,
+    viewingScopeSummary,
+
+    groupView: groupView.showGroupFilter ? groupView : vcenterFilterView,
 
     infra,
     vms,

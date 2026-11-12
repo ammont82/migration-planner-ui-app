@@ -11,8 +11,10 @@ describe("useExampleReportViewModel", () => {
   it("shows group filter options from example subset inventories", () => {
     const { result } = renderHook(() => useExampleReportViewModel());
 
-    expect(result.current.groupView.showGroupFilter).toBe(true);
-    expect(result.current.groupView.groupOptions.length).toBeGreaterThan(1);
+    expect(result.current.viewingGroupView.showGroupFilter).toBe(true);
+    expect(result.current.viewingGroupView.groupOptions.length).toBeGreaterThan(
+      1,
+    );
     expect(result.current.selectedGroupId).toBe(ALL_VMS_GROUP_ID);
   });
 
@@ -51,7 +53,7 @@ describe("useExampleReportViewModel", () => {
       targetGroup.inventory?.vcenter?.vms?.total,
     );
     expect(result.current.clusterView.viewVms?.total).not.toBe(fullVmTotal);
-    expect(result.current.detectedSummaryText).toContain(
+    expect(result.current.inventoryScopeSummary).toContain(
       String(fullInventory.vcenter?.vms?.total),
     );
   });
@@ -80,7 +82,7 @@ describe("useExampleReportViewModel", () => {
     expect(result.current.exampleSizing?.result.inventoryTotals.totalVMs).toBe(
       totalVMs,
     );
-    expect(result.current.detectedSummaryText).toContain(String(totalVMs));
+    expect(result.current.inventoryScopeSummary).toContain(String(totalVMs));
   });
 
   it("uses the selected cluster sizing fixture", () => {

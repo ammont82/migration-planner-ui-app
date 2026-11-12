@@ -65,17 +65,7 @@ export const resolveSelectedClusterId = (
     }
   }
 
-  const clusterKeys = clusters ? Object.keys(clusters) : [];
-
-  if (clusterKeys.length === 0) {
-    return ALL_CLUSTERS_ID;
-  }
-
-  const sortedKeys = [...clusterKeys].sort((a, b) =>
-    compareClustersByVmCount(a, b, clusters),
-  );
-
-  return sortedKeys[0];
+  return ALL_CLUSTERS_ID;
 };
 
 export const getClusterOptions = (clusters?: {
@@ -143,6 +133,7 @@ export const buildClusterViewModel = ({
   const clusterInfra = clusterData?.infra;
   const clusterVms = clusterData?.vms;
   const selectionLabel = clusterData ? effectiveSelection : "Missing cluster";
+  const hasClusterPayload = Boolean(clusterInfra || clusterVms);
 
   return {
     viewInfra: clusterInfra,
@@ -157,6 +148,6 @@ export const buildClusterViewModel = ({
     selectionId: effectiveSelection,
     selectionLabel,
     clusterOptions: options,
-    clusterFound: Boolean(clusterData),
+    clusterFound: hasClusterPayload,
   };
 };

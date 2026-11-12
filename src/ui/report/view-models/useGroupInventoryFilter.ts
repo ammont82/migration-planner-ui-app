@@ -52,6 +52,7 @@ export const useGroupInventoryFilter = ({
       buildGroupViewModel({
         subsetInventories,
         selectedGroupId,
+        labelMode: "viewing-group",
       }),
     [subsetInventories, selectedGroupId],
   );

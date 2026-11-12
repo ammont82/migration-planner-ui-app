@@ -8,7 +8,10 @@ import type { IAssessmentsStore } from "../../../data/stores/interfaces/IAssessm
 import { parseApiError } from "../../../lib/common/ErrorParser";
 import {
   buildClustersMapForOptions,
+  clusterIdsFromReportInventory,
   clusterIdsFromVcenterV2,
+  mergeClusterIds,
+  resolveEmbeddedClusterInventory,
   vcenterV2ToReportSource,
 } from "../helpers/assessmentV2Inventory";
 import {
@@ -22,7 +25,9 @@ export const useReportV2InventoryScope = ({
   assessmentId,
   userSelectedClusterId,
   scopedVcenterApiId,
+  scopedSubsetInventory,
   aggregateInventory,
+  allowAggregateClusterFallback = true,
   assessmentsStore,
 }: {
   enabled: boolean;
@@ -30,7 +35,11 @@ export const useReportV2InventoryScope = ({
   userSelectedClusterId: string | null;
   /** When set, load cluster inventory from the v2 vCenter APIs. */
   scopedVcenterApiId: string | undefined;
+  /** Subset snapshot for the active vCenter (embedded cluster payloads). */
+  scopedSubsetInventory?: ReportInventorySource;
   aggregateInventory: ReportInventorySource | undefined;
+  /** When false, do not read cluster payloads from the assessment-wide snapshot. */
+  allowAggregateClusterFallback?: boolean;
   assessmentsStore: IAssessmentsStore;
 }): {
   activeInventory: ReportInventorySource | undefined;
@@ -74,6 +83,7 @@ export const useReportV2InventoryScope = ({
           setLoadedClusters({});
           setClustersVcenterId(selectedVcenterId);
           setVcenterLoadError(undefined);
+          setClusterLoadError(undefined);
         }
       })
       .catch(async (err) => {
@@ -85,6 +95,7 @@ export const useReportV2InventoryScope = ({
           setLoadedVcenterId(selectedVcenterId);
           setLoadedClusters({});
           setClustersVcenterId(selectedVcenterId);
+          setClusterLoadError(undefined);
         }
       });
 
@@ -100,9 +111,22 @@ export const useReportV2InventoryScope = ({
     if (!vcenterResponse || !vcenterMatchesSelection) {
       return undefined;
     }
-    const clusterIds = clusterIdsFromVcenterV2(vcenterResponse);
+    const clusterIds = mergeClusterIds(
+      clusterIdsFromVcenterV2(vcenterResponse),
+      clusterIdsFromReportInventory(scopedSubsetInventory),
+      clusterIdsFromReportInventory(
+        allowAggregateClusterFallback ? aggregateInventory : undefined,
+      ),
+    );
     return buildClustersMapForOptions(clusterIds, loadedClusters);
-  }, [loadedClusters, vcenterMatchesSelection, vcenterResponse]);
+  }, [
+    aggregateInventory,
+    allowAggregateClusterFallback,
+    loadedClusters,
+    scopedSubsetInventory,
+    vcenterMatchesSelection,
+    vcenterResponse,
+  ]);
 
   const selectedClusterId = useMemo(
     () => resolveSelectedClusterId(userSelectedClusterId, clustersForSelection),
@@ -112,51 +136,155 @@ export const useReportV2InventoryScope = ({
   const clustersMatchSelection =
     vcenterMatchesSelection && clustersVcenterId === selectedVcenterId;
 
+  const vcenterApiId = vcenterResponse?.data?.id ?? selectedVcenterId;
+
+  const aggregateFallback = allowAggregateClusterFallback
+    ? aggregateInventory
+    : undefined;
+
+  const embeddedClusterForSelection = useMemo((): InventoryData | undefined => {
+    if (!vcenterMatchesSelection || selectedClusterId === ALL_CLUSTERS_ID) {
+      return undefined;
+    }
+    const existing = loadedClusters[selectedClusterId];
+    if (existing && Boolean(existing.infra || existing.vms)) {
+      return undefined;
+    }
+    return (
+      resolveEmbeddedClusterInventory(
+        scopedSubsetInventory,
+        selectedClusterId,
+      ) ?? resolveEmbeddedClusterInventory(aggregateFallback, selectedClusterId)
+    );
+  }, [
+    aggregateFallback,
+    loadedClusters,
+    scopedSubsetInventory,
+    selectedClusterId,
+    vcenterMatchesSelection,
+  ]);
+
+  const loadedClustersWithEmbedded = useMemo((): Record<
+    string,
+    InventoryData
+  > => {
+    if (!embeddedClusterForSelection) {
+      return loadedClusters;
+    }
+    return {
+      ...loadedClusters,
+      [selectedClusterId]: embeddedClusterForSelection,
+    };
+  }, [embeddedClusterForSelection, loadedClusters, selectedClusterId]);
+
+  const applyLoadedCluster = (
+    clusterId: string,
+    clusterData: InventoryData,
+    cancelled: boolean,
+  ): void => {
+    if (cancelled) {
+      return;
+    }
+    setLoadedClusters((previous) => ({
+      ...previous,
+      [clusterId]: clusterData,
+    }));
+    setClusterLoadError(undefined);
+  };
+
   useEffect(() => {
     if (
       !enabled ||
       !assessmentId ||
-      !selectedVcenterId ||
       !vcenterMatchesSelection ||
-      selectedClusterId === ALL_CLUSTERS_ID ||
-      loadedClusters[selectedClusterId]
+      selectedClusterId === ALL_CLUSTERS_ID
     ) {
+      return;
+    }
+
+    const existing = loadedClusters[selectedClusterId];
+    if (existing && Boolean(existing.infra || existing.vms)) {
+      return;
+    }
+
+    if (embeddedClusterForSelection) {
+      return;
+    }
+
+    if (!vcenterApiId) {
       return;
     }
 
     let cancelled = false;
 
-    void assessmentsStore
-      .getVcenterCluster(assessmentId, selectedVcenterId, selectedClusterId)
-      .then((clusterData) => {
-        if (!cancelled) {
-          setLoadedClusters((previous) => ({
-            ...previous,
-            [selectedClusterId]: clusterData,
-          }));
-          setClusterLoadError(undefined);
+    const tryFetchCluster = (vid: string): Promise<InventoryData> =>
+      assessmentsStore.getVcenterCluster(assessmentId, vid, selectedClusterId);
+
+    const vidsToTry = [
+      ...new Set(
+        [vcenterApiId, selectedVcenterId].filter((vid): vid is string =>
+          Boolean(vid),
+        ),
+      ),
+    ];
+
+    const loadCluster = async (): Promise<void> => {
+      let lastError: unknown;
+      for (const vid of vidsToTry) {
+        try {
+          const clusterData = await tryFetchCluster(vid);
+          applyLoadedCluster(selectedClusterId, clusterData, cancelled);
+          return;
+        } catch (err) {
+          lastError = err;
         }
-      })
-      .catch(async (err) => {
-        if (!cancelled) {
-          setClusterLoadError(
-            await parseApiError(err, "Failed to load cluster inventory"),
-          );
-        }
-      });
+      }
+
+      const fallback =
+        resolveEmbeddedClusterInventory(
+          scopedSubsetInventory,
+          selectedClusterId,
+        ) ??
+        resolveEmbeddedClusterInventory(aggregateFallback, selectedClusterId);
+      if (fallback) {
+        applyLoadedCluster(selectedClusterId, fallback, cancelled);
+        return;
+      }
+
+      if (!cancelled) {
+        setClusterLoadError(
+          await parseApiError(lastError, "Failed to load cluster inventory"),
+        );
+      }
+    };
+
+    void loadCluster();
 
     return () => {
       cancelled = true;
     };
   }, [
+    aggregateFallback,
     assessmentsStore,
     assessmentId,
     enabled,
     loadedClusters,
+    scopedSubsetInventory,
+    embeddedClusterForSelection,
     selectedClusterId,
     selectedVcenterId,
+    vcenterApiId,
     vcenterMatchesSelection,
   ]);
+
+  const selectedClusterHasPayload = Boolean(
+    embeddedClusterForSelection ||
+    (loadedClusters[selectedClusterId] &&
+      Boolean(
+        loadedClusters[selectedClusterId].infra ||
+        loadedClusters[selectedClusterId].vms,
+      )),
+  );
 
   const vcenterInventoryLoading = Boolean(
     selectedVcenterId && loadedVcenterId !== selectedVcenterId,
@@ -167,7 +295,7 @@ export const useReportV2InventoryScope = ({
     vcenterMatchesSelection &&
     clustersMatchSelection &&
     selectedClusterId !== ALL_CLUSTERS_ID &&
-    !loadedClusters[selectedClusterId],
+    !selectedClusterHasPayload,
   );
 
   const inventoryLoading = vcenterInventoryLoading || clusterInventoryLoading;
@@ -182,26 +310,39 @@ export const useReportV2InventoryScope = ({
     if (!vcenterResponse || !vcenterMatchesSelection) {
       return undefined;
     }
-    const clusterIds = clusterIdsFromVcenterV2(vcenterResponse);
-    const clustersForInventory = clustersMatchSelection ? loadedClusters : {};
+    const clusterIds = mergeClusterIds(
+      clusterIdsFromVcenterV2(vcenterResponse),
+      clusterIdsFromReportInventory(scopedSubsetInventory),
+      clusterIdsFromReportInventory(
+        allowAggregateClusterFallback ? aggregateInventory : undefined,
+      ),
+    );
+    const clustersForInventory = clustersMatchSelection
+      ? loadedClustersWithEmbedded
+      : {};
     return vcenterV2ToReportSource(
       vcenterResponse,
       buildClustersMapForOptions(clusterIds, clustersForInventory),
     );
   }, [
     aggregateInventory,
+    allowAggregateClusterFallback,
     clustersMatchSelection,
     enabled,
-    loadedClusters,
+    loadedClustersWithEmbedded,
+    scopedSubsetInventory,
     scopedVcenterApiId,
     vcenterMatchesSelection,
     vcenterResponse,
   ]);
 
+  const resolvedClusterLoadError =
+    selectedClusterId === ALL_CLUSTERS_ID ? undefined : clusterLoadError;
+
   return {
     activeInventory,
     inventoryLoading,
     vcenterLoadError,
-    clusterLoadError,
+    clusterLoadError: resolvedClusterLoadError,
   };
 };
