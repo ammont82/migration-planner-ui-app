@@ -18,6 +18,7 @@ let mockVersionsStore: {
   subscribe: ReturnType<typeof vi.fn>;
   getSnapshot: ReturnType<typeof vi.fn>;
   getApiVersionInfo: ReturnType<typeof vi.fn>;
+  getUiVersionInfo: ReturnType<typeof vi.fn>;
 };
 
 vi.mock("@openshift-migration-advisor/ioc", () => ({
@@ -43,6 +44,7 @@ describe("useVersionInfoViewModel", () => {
       subscribe: vi.fn(() => () => {}),
       getSnapshot: vi.fn(() => mockVersionInfo),
       getApiVersionInfo: vi.fn().mockResolvedValue(mockVersionInfo),
+      getUiVersionInfo: vi.fn().mockResolvedValue(mockVersionInfo),
     };
   });
 

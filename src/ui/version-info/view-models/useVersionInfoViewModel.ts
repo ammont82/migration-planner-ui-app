@@ -22,6 +22,7 @@ export const useVersionInfoViewModel = () => {
   );
 
   const result = useAsync(() => versionsStore.getApiVersionInfo(), []);
+  useAsync(() => versionsStore.getUiVersionInfo(), []);
 
   const exposeGlobally = useCallback(
     (versionInfo: VersionInfo | null): void => {
