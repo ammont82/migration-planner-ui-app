@@ -44,6 +44,31 @@ export const buildClustersMapForOptions = (
   return map;
 };
 
+/**
+ * Cluster map for report/export: API-loaded payloads plus embedded snapshot
+ * clusters so aggregate views can detect exportable inventory before a cluster
+ * is selected in the dropdown.
+ */
+export const buildClustersMapWithEmbeddedFallback = (
+  clusterIds: string[],
+  loaded: Record<string, InventoryData>,
+  scopedSubsetInventory?: ReportInventorySource,
+  aggregateFallback?: ReportInventorySource,
+): Record<string, InventoryData> => {
+  const map = buildClustersMapForOptions(clusterIds, loaded);
+  for (const clusterId of clusterIds) {
+    if (!clusterInventoryHasPayload(map[clusterId])) {
+      const embedded =
+        resolveEmbeddedClusterInventory(scopedSubsetInventory, clusterId) ??
+        resolveEmbeddedClusterInventory(aggregateFallback, clusterId);
+      if (embedded) {
+        map[clusterId] = embedded;
+      }
+    }
+  }
+  return map;
+};
+
 /** Cluster ids from embedded assessment / subset snapshot inventory. */
 export const clusterIdsFromReportInventory = (
   inventory: ReportInventorySource | undefined,

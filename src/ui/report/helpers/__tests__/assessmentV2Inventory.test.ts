@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildClustersMapForOptions,
+  buildClustersMapWithEmbeddedFallback,
   clusterIdsFromReportInventory,
   clusterIdsFromVcenterV2,
   mergeClusterIds,
@@ -85,5 +86,26 @@ describe("assessmentV2Inventory", () => {
 
     expect(map["cluster-a"]?.vms?.total).toBe(1);
     expect(map["cluster-b"]).toEqual({});
+  });
+
+  it("fills unloaded cluster slots from embedded snapshot inventory", () => {
+    const subset: ReportInventorySource = {
+      clusters: {
+        "cluster-b": {
+          infra: { totalHosts: 3 } as Infra,
+          vms: { total: 7 } as VMs,
+        },
+      },
+    };
+
+    const map = buildClustersMapWithEmbeddedFallback(
+      ["cluster-a", "cluster-b"],
+      {},
+      subset,
+    );
+
+    expect(map["cluster-a"]).toEqual({});
+    expect(map["cluster-b"]?.infra?.totalHosts).toBe(3);
+    expect(map["cluster-b"]?.vms?.total).toBe(7);
   });
 });

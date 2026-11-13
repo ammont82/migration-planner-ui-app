@@ -8,6 +8,7 @@ import type { IAssessmentsStore } from "../../../data/stores/interfaces/IAssessm
 import { parseApiError } from "../../../lib/common/ErrorParser";
 import {
   buildClustersMapForOptions,
+  buildClustersMapWithEmbeddedFallback,
   clusterIdsFromReportInventory,
   clusterIdsFromVcenterV2,
   mergeClusterIds,
@@ -317,14 +318,16 @@ export const useReportV2InventoryScope = ({
         allowAggregateClusterFallback ? aggregateInventory : undefined,
       ),
     );
-    const clustersForInventory = clustersMatchSelection
-      ? loadedClustersWithEmbedded
-      : {};
-    return vcenterV2ToReportSource(
-      vcenterResponse,
-      buildClustersMapForOptions(clusterIds, clustersForInventory),
+    const loaded = clustersMatchSelection ? loadedClustersWithEmbedded : {};
+    const clustersForInventory = buildClustersMapWithEmbeddedFallback(
+      clusterIds,
+      loaded,
+      scopedSubsetInventory,
+      aggregateFallback,
     );
+    return vcenterV2ToReportSource(vcenterResponse, clustersForInventory);
   }, [
+    aggregateFallback,
     aggregateInventory,
     allowAggregateClusterFallback,
     clustersMatchSelection,
