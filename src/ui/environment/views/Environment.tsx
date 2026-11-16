@@ -27,6 +27,10 @@ const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
   const [shouldShowCreateModal, setShouldShowCreateModal] = useState(false);
   const [isCreateAssessmentModalOpen, setIsCreateAssessmentModalOpen] =
     useState(false);
+  const [
+    createAssessmentPreselectedSourceId,
+    setCreateAssessmentPreselectedSourceId,
+  ] = useState<string | undefined>(undefined);
   const [shouldShowEditModal, setShouldShowEditModal] = useState(false);
   const [shouldShowDownloadModal, setShouldShowDownloadModal] = useState(false);
   const [editSourceId, setEditSourceId] = useState<string | null>(null);
@@ -155,7 +159,8 @@ const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
           setDownloadSourceId(sourceId);
           setShouldShowDownloadModal(true);
         }}
-        onCreateAssessment={() => {
+        onCreateAssessment={(sourceId) => {
+          setCreateAssessmentPreselectedSourceId(sourceId);
           setIsCreateAssessmentModalOpen(true);
         }}
       />
@@ -164,8 +169,10 @@ const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
         isOpen={isCreateAssessmentModalOpen}
         onClose={() => {
           setIsCreateAssessmentModalOpen(false);
+          setCreateAssessmentPreselectedSourceId(undefined);
         }}
         sources={vm.sources}
+        preselectedSourceId={createAssessmentPreselectedSourceId}
         onInventoryUploaded={() => {
           void vm.listSources();
         }}

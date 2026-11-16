@@ -424,8 +424,8 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
     });
   };
 
-  const handleCreateAssessment = (): void => {
-    onCreateAssessment?.();
+  const handleCreateAssessment = (sourceId?: string): void => {
+    onCreateAssessment?.(sourceId);
   };
 
   const findAssessment = (assessmentId: string): AssessmentModel | undefined =>
@@ -809,7 +809,13 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                           <DropdownList>
                             {onCreateAssessment ? (
                               <DropdownItem
-                                onClick={() => handleCreateAssessment()}
+                                onClick={() => {
+                                  setOpenDropdowns((prev) => ({
+                                    ...prev,
+                                    [source.id]: false,
+                                  }));
+                                  handleCreateAssessment(source.id);
+                                }}
                               >
                                 Create assessment
                               </DropdownItem>
@@ -868,7 +874,9 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                     <ExpandableRowContent hasNoBackground>
                       <SourceAssessmentsCard
                         source={source}
-                        onCreateAssessment={() => handleCreateAssessment()}
+                        onCreateAssessment={() =>
+                          handleCreateAssessment(source.id)
+                        }
                         onDeleteAssessment={handleDeleteAssessment}
                         onShareAssessment={handleShareAssessment}
                         onUnshareAssessment={handleUnshareAssessment}
