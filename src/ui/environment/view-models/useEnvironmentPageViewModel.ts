@@ -69,6 +69,12 @@ export interface EnvironmentPageViewModel {
   getAssessmentsForSource: (sourceId: string) => AssessmentModel[];
   listAssessments: () => Promise<AssessmentModel[]>;
   isLoadingAssessments: boolean;
+  shareAssessment: (id: string) => Promise<void>;
+  unshareAssessment: (id: string) => Promise<void>;
+  deleteAssessment: (id: string) => Promise<void>;
+  isSharingAssessment: boolean;
+  isUnsharingAssessment: boolean;
+  isDeletingAssessment: boolean;
 
   // Misc
   assessmentFromAgentState: boolean;
@@ -350,6 +356,27 @@ export const useEnvironmentPageViewModel = (): EnvironmentPageViewModel => {
     [assessmentsStore],
   );
 
+  const [shareAssessmentState, doShareAssessment] = useAsyncFn(
+    async (id: string) => {
+      await assessmentsStore.share(id);
+    },
+    [assessmentsStore],
+  );
+
+  const [unshareAssessmentState, doUnshareAssessment] = useAsyncFn(
+    async (id: string) => {
+      await assessmentsStore.unshare(id);
+    },
+    [assessmentsStore],
+  );
+
+  const [deleteAssessmentState, doDeleteAssessment] = useAsyncFn(
+    async (id: string) => {
+      await assessmentsStore.remove(id);
+    },
+    [assessmentsStore],
+  );
+
   // ---- Composite actions ---------------------------------------------------
   const [deleteAndRefreshState, doDeleteAndRefresh] = useAsyncFn(
     async (id: string) => {
@@ -433,6 +460,12 @@ export const useEnvironmentPageViewModel = (): EnvironmentPageViewModel => {
 
     listAssessments: doListAssessments,
     isLoadingAssessments: listAssessmentsState.loading,
+    shareAssessment: doShareAssessment,
+    unshareAssessment: doUnshareAssessment,
+    deleteAssessment: doDeleteAssessment,
+    isSharingAssessment: shareAssessmentState.loading,
+    isUnsharingAssessment: unshareAssessmentState.loading,
+    isDeletingAssessment: deleteAssessmentState.loading,
 
     assessmentFromAgentState,
     setAssessmentFromAgent,

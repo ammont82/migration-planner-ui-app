@@ -250,6 +250,12 @@ function makeBaseVm(
 
     listAssessments: vi.fn().mockResolvedValue([]),
     isLoadingAssessments: false,
+    shareAssessment: vi.fn().mockResolvedValue(undefined),
+    unshareAssessment: vi.fn().mockResolvedValue(undefined),
+    deleteAssessment: vi.fn().mockResolvedValue(undefined),
+    isSharingAssessment: false,
+    isUnsharingAssessment: false,
+    isDeletingAssessment: false,
 
     assessmentFromAgentState: false,
     setAssessmentFromAgent: vi.fn(),

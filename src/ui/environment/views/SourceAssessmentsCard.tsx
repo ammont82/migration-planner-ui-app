@@ -18,11 +18,17 @@ import { useEnvironmentPage } from "../view-models/EnvironmentPageContext";
 type SourceAssessmentsProps = {
   source: SourceModel;
   onCreateAssessment: (source: SourceModel) => void;
+  onDeleteAssessment?: (assessmentId: string) => void;
+  onShareAssessment?: (assessmentId: string) => void;
+  onUnshareAssessment?: (assessmentId: string) => void;
 };
 
 export const SourceAssessmentsCard: React.FC<SourceAssessmentsProps> = ({
   source,
   onCreateAssessment,
+  onDeleteAssessment,
+  onShareAssessment,
+  onUnshareAssessment,
 }): React.ReactNode => {
   const { getAssessmentsForSource } = useEnvironmentPage();
   const assessments = getAssessmentsForSource(source.id);
@@ -58,7 +64,14 @@ export const SourceAssessmentsCard: React.FC<SourceAssessmentsProps> = ({
     );
   }
 
-  return <AssessmentsList assessments={assessments} />;
+  return (
+    <AssessmentsList
+      assessments={assessments}
+      onDelete={onDeleteAssessment}
+      onShareAssessment={onShareAssessment}
+      onUnshareAssessment={onUnshareAssessment}
+    />
+  );
 };
 
 SourceAssessmentsCard.displayName = "SourceAssessmentsCard";
