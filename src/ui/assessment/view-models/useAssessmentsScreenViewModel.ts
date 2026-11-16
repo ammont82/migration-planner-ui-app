@@ -1,5 +1,5 @@
 import { useInjection } from "@openshift-migration-advisor/ioc";
-import { useState, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { useOutletContext } from "react-router-dom";
 import { useAsyncFn, useMount, useUnmount } from "react-use";
 
@@ -8,6 +8,7 @@ import type { IAssessmentsStore } from "../../../data/stores/interfaces/IAssessm
 import { DEFAULT_POLLING_DELAY } from "../../../lib/mvvm/PollableStore";
 import type { AssessmentModel } from "../../../models/AssessmentModel";
 import type { HomeScreenOutletContext } from "../../home/view-models/useHomeScreenViewModel";
+import { isUploadedFileSourceType } from "../helpers/assessmentSource";
 
 export interface AssessmentsScreenViewModel {
   assessments: AssessmentModel[];
@@ -22,9 +23,18 @@ export const useAssessmentsScreenViewModel = (): AssessmentsScreenViewModel => {
   const assessmentsStore = useInjection<IAssessmentsStore>(
     Symbols.AssessmentsStore,
   );
-  const assessments = useSyncExternalStore(
+  const allAssessments = useSyncExternalStore(
     assessmentsStore.subscribe.bind(assessmentsStore),
     assessmentsStore.getSnapshot.bind(assessmentsStore),
+  );
+
+  /** RVTools tab lists file-upload assessments only; discovery appliance assessments live under Environments. */
+  const assessments = useMemo(
+    () =>
+      (allAssessments ?? []).filter((assessment) =>
+        isUploadedFileSourceType(String(assessment.sourceType)),
+      ),
+    [allAssessments],
   );
 
   const [hasInitialLoad, setHasInitialLoad] = useState(false);

@@ -99,16 +99,25 @@ describe("useAssessmentsScreenViewModel", () => {
     };
   });
 
-  it("returns assessments from the store snapshot", async () => {
-    const assessment = makeAssessment({ id: "a-1", name: "Test Assessment" });
+  it("returns file-upload assessments from the store snapshot", async () => {
+    const rvtools = makeAssessment({
+      id: "a-1",
+      name: "RVTools Assessment",
+      sourceType: "rvtools",
+    });
+    const discovery = makeAssessment({
+      id: "a-2",
+      name: "Discovery Assessment",
+      sourceType: "source",
+    });
     const { result } = renderHook(() => useAssessmentsScreenViewModel());
 
     await act(async () => {
-      setAssessmentsData([assessment]);
+      setAssessmentsData([rvtools, discovery]);
       await Promise.resolve();
     });
 
-    expect(result.current.assessments).toEqual([assessment]);
+    expect(result.current.assessments).toEqual([rvtools]);
   });
 
   it("calls list() on mount", async () => {
