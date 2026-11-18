@@ -19,6 +19,7 @@ const ALLOWED_EXTENSIONS = new Set(["json", "zip"]);
 export interface UseCreateDiscoveryAssessmentViewModelArgs {
   isOpen: boolean;
   sources: SourceModel[];
+  preselectedSourceId?: string;
   onClose: () => void;
   onInventoryUploaded?: () => void | Promise<void>;
 }
@@ -64,6 +65,33 @@ const getDefaultDataSource = (
   return hasConnected ? "connected" : "upload";
 };
 
+const getInitialFormValues = (
+  sources: SourceModel[],
+  preselectedSourceId?: string,
+): {
+  dataSource: DiscoveryAssessmentDataSource;
+  selectedSourceId: string;
+} => {
+  const preselected = preselectedSourceId
+    ? sources.find(
+        (source) =>
+          source.id === preselectedSourceId && !isExampleSource(source),
+      )
+    : undefined;
+
+  if (preselected) {
+    return {
+      dataSource: preselected.isConnected ? "connected" : "upload",
+      selectedSourceId: preselected.id,
+    };
+  }
+
+  return {
+    dataSource: getDefaultDataSource(sources),
+    selectedSourceId: "",
+  };
+};
+
 const validateInventoryFile = (file: File): string | null => {
   const extension = file.name.toLowerCase().split(".").pop();
   if (!extension || !ALLOWED_EXTENSIONS.has(extension)) {
@@ -78,6 +106,7 @@ const validateInventoryFile = (file: File): string | null => {
 export const useCreateDiscoveryAssessmentViewModel = ({
   isOpen,
   sources,
+  preselectedSourceId,
   onClose,
   onInventoryUploaded,
 }: UseCreateDiscoveryAssessmentViewModelArgs): CreateDiscoveryAssessmentViewModel => {
@@ -124,17 +153,17 @@ export const useCreateDiscoveryAssessmentViewModel = ({
     dataSource === "connected" ? connectedSources : associableSources;
 
   const resetForm = useCallback((): void => {
-    const defaultSource = getDefaultDataSource(sources);
-    setDataSourceRaw(defaultSource);
+    const initial = getInitialFormValues(sources, preselectedSourceId);
+    setDataSourceRaw(initial.dataSource);
     setAssessmentName(buildDiscoveryAssessmentDefaultName());
-    setSelectedSourceId("");
+    setSelectedSourceId(initial.selectedSourceId);
     setSelectedFile(null);
     setInventoryFilename("");
     setNameValidationError("");
     setSourceValidationError("");
     setFileValidationError("");
     setDismissApiError(true);
-  }, [sources]);
+  }, [preselectedSourceId, sources]);
 
   if (isOpen && !formInitializedForOpen) {
     setFormInitializedForOpen(true);

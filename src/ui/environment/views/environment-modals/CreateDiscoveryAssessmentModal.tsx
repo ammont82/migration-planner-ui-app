@@ -29,6 +29,7 @@ export type CreateDiscoveryAssessmentModalProps = {
   isOpen: boolean;
   onClose: () => void;
   sources: SourceModel[];
+  preselectedSourceId?: string;
   onInventoryUploaded?: () => void | Promise<void>;
 };
 
@@ -46,6 +47,7 @@ const introStyle = css`
 
 type CreateDiscoveryAssessmentModalContentProps = {
   sources: SourceModel[];
+  preselectedSourceId?: string;
   onClose: () => void;
   onInventoryUploaded?: () => void | Promise<void>;
   onSubmittingChange: (isSubmitting: boolean) => void;
@@ -53,10 +55,17 @@ type CreateDiscoveryAssessmentModalContentProps = {
 
 const CreateDiscoveryAssessmentModalContent: React.FC<
   CreateDiscoveryAssessmentModalContentProps
-> = ({ sources, onClose, onInventoryUploaded, onSubmittingChange }) => {
+> = ({
+  sources,
+  preselectedSourceId,
+  onClose,
+  onInventoryUploaded,
+  onSubmittingChange,
+}) => {
   const vm = useCreateDiscoveryAssessmentViewModel({
     isOpen: true,
     sources,
+    preselectedSourceId,
     onClose,
     onInventoryUploaded,
   });
@@ -315,7 +324,13 @@ CreateDiscoveryAssessmentModalContent.displayName =
 
 export const CreateDiscoveryAssessmentModal: React.FC<
   CreateDiscoveryAssessmentModalProps
-> = ({ isOpen, onClose, sources, onInventoryUploaded }) => {
+> = ({
+  isOpen,
+  onClose,
+  sources,
+  preselectedSourceId,
+  onInventoryUploaded,
+}) => {
   const isSubmittingRef = useRef(false);
 
   const handleModalClose = (): void => {
@@ -330,6 +345,7 @@ export const CreateDiscoveryAssessmentModal: React.FC<
       {isOpen ? (
         <CreateDiscoveryAssessmentModalContent
           sources={sources}
+          preselectedSourceId={preselectedSourceId}
           onClose={onClose}
           onInventoryUploaded={onInventoryUploaded}
           onSubmittingChange={(isSubmitting) => {

@@ -112,6 +112,56 @@ describe("useCreateDiscoveryAssessmentViewModel", () => {
     expect(result.current.applianceOptions[0].id).toBe("src-connected");
   });
 
+  it("pre-selects a connected appliance and data source when opened from its row", () => {
+    const sources = [
+      makeSource({
+        id: "src-connected",
+        agent: { status: "up-to-date" } as Source["agent"],
+        inventory: {
+          vcenter: { infra: { totalHosts: 1 } },
+        } as Source["inventory"],
+      }),
+      makeSource({ id: "src-offline", name: "Offline" }),
+    ];
+
+    const { result } = renderHook(() =>
+      useCreateDiscoveryAssessmentViewModel({
+        isOpen: true,
+        sources,
+        preselectedSourceId: "src-connected",
+        onClose,
+      }),
+    );
+
+    expect(result.current.dataSource).toBe("connected");
+    expect(result.current.selectedSourceId).toBe("src-connected");
+    expect(result.current.isSubmitDisabled).toBe(false);
+  });
+
+  it("pre-selects a manual appliance with upload data source when opened from its row", () => {
+    const sources = [
+      makeSource({
+        id: "src-manual",
+        name: "Manual upload",
+        onPremises: true,
+        agent: undefined,
+        inventory: { vcenter: {} } as Source["inventory"],
+      }),
+    ];
+
+    const { result } = renderHook(() =>
+      useCreateDiscoveryAssessmentViewModel({
+        isOpen: true,
+        sources,
+        preselectedSourceId: "src-manual",
+        onClose,
+      }),
+    );
+
+    expect(result.current.dataSource).toBe("upload");
+    expect(result.current.selectedSourceId).toBe("src-manual");
+  });
+
   it("requires an explicit appliance selection before submit", () => {
     const sources = [
       makeSource({
