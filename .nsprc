@@ -1,4 +1,9 @@
 {
+  "1247710": {
+    "active": true,
+    "notes": "picomatch GHSA-fc5q-39xc-vjpf (ReDoS via repeated extglobs): fix requires picomatch > 4.0.7; no patched release on npm yet. Dev-only chain (vite, vitest, webpack-dev-server, file watchers). Add package.json override when 4.0.8+ is available and passes min-release-age.",
+    "expiry": "2026-12-09"
+  },
   "1244623": {
     "active": true,
     "notes": "minimatch GHSA-g3hv-75wg-m249 (DoS via globparts): fix is minimatch >= 11.0.1 but min-release-age=7 blocks fresh releases. Dev-only chain (eslint, webpack tooling). Re-evaluate at expiry: add package.json override once versions age out. (Advisory ID superseded 1244012.)",
