@@ -18,10 +18,6 @@ import {
   attributeValueFilterToolbarStyle,
 } from "../../core/components/attribute-value-filter";
 import { ConfirmationModal } from "../../core/components/ConfirmationModal";
-import {
-  ASSESSMENT_SOURCE_FILTER_OPTIONS,
-  type AssessmentSourceFilterKey,
-} from "../helpers/assessmentSource";
 import { useAssessmentPageViewModel } from "../view-models/useAssessmentPageViewModel";
 import AssessmentEmptyState from "./AssessmentEmptyState";
 import { AssessmentsList } from "./AssessmentsList";
@@ -119,15 +115,10 @@ export const AssessmentsPage: React.FC<AssessmentsPageProps> = ({
   const [selectedAssessment, setSelectedAssessment] =
     useState<AssessmentModel | null>(null);
 
-  // Multi-select filters (checkbox)
-  const [selectedSources, setSelectedSources] = useState<
-    AssessmentSourceFilterKey[]
-  >([]);
   const [selectedOwners, setSelectedOwners] = useState<string[]>([]);
 
   const clearAllFilters = (): void => {
     setSearch("");
-    setSelectedSources([]);
     setSelectedOwners([]);
   };
 
@@ -197,18 +188,6 @@ export const AssessmentsPage: React.FC<AssessmentsPageProps> = ({
         ariaLabel: "Filter by name",
       },
       {
-        id: "source",
-        label: "Source",
-        type: "checkbox",
-        options: ASSESSMENT_SOURCE_FILTER_OPTIONS.map((option) => ({
-          value: option.key,
-          label: option.label,
-        })),
-        selections: selectedSources,
-        onSelectionsChange: (selections) =>
-          setSelectedSources(selections as AssessmentSourceFilterKey[]),
-      },
-      {
         id: "owner",
         label: "Owner",
         type: "checkbox",
@@ -217,7 +196,7 @@ export const AssessmentsPage: React.FC<AssessmentsPageProps> = ({
         onSelectionsChange: setSelectedOwners,
       },
     ],
-    [owners, search, selectedOwners, selectedSources],
+    [owners, search, selectedOwners],
   );
 
   const handleUpdateAssessment = (assessmentId: string): void => {
@@ -357,7 +336,6 @@ export const AssessmentsPage: React.FC<AssessmentsPageProps> = ({
             onUpdate={handleUpdateAssessment}
             onShareAssessment={handleShareAssessment}
             onUnshareAssessment={handleUnshareAssessment}
-            selectedSources={selectedSources}
             selectedOwners={selectedOwners}
             visibleColumns={visibleColumns}
           />
