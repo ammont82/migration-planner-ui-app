@@ -35,6 +35,9 @@ let mockSourcesStore: {
 
 let mockAssessmentsStore: {
   list: ReturnType<typeof vi.fn>;
+  share: ReturnType<typeof vi.fn>;
+  unshare: ReturnType<typeof vi.fn>;
+  remove: ReturnType<typeof vi.fn>;
   startPolling: ReturnType<typeof vi.fn>;
   stopPolling: ReturnType<typeof vi.fn>;
   subscribe: ReturnType<typeof vi.fn>;
@@ -124,6 +127,9 @@ describe("useEnvironmentPageViewModel", () => {
 
     mockAssessmentsStore = {
       list: vi.fn().mockResolvedValue([]),
+      share: vi.fn().mockResolvedValue(undefined),
+      unshare: vi.fn().mockResolvedValue(undefined),
+      remove: vi.fn().mockResolvedValue(undefined),
       startPolling: vi.fn(),
       stopPolling: vi.fn(),
       subscribe: vi.fn((listener: () => void) => {
@@ -598,6 +604,18 @@ describe("useEnvironmentPageViewModel", () => {
 
     // Mount call + explicit call
     expect(mockAssessmentsStore.list).toHaveBeenCalledTimes(2);
+  });
+
+  it("delegates share, unshare, and delete assessment to the assessments store", async () => {
+    const { result } = renderHook(() => useEnvironmentPageViewModel());
+
+    await act(() => result.current.shareAssessment("a-1"));
+    await act(() => result.current.unshareAssessment("a-1"));
+    await act(() => result.current.deleteAssessment("a-1"));
+
+    expect(mockAssessmentsStore.share).toHaveBeenCalledWith("a-1");
+    expect(mockAssessmentsStore.unshare).toHaveBeenCalledWith("a-1");
+    expect(mockAssessmentsStore.remove).toHaveBeenCalledWith("a-1");
   });
 
   // ---- Polling custom delay ------------------------------------------------

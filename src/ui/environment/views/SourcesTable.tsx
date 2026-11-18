@@ -30,6 +30,7 @@ import { useNavigate } from "react-router-dom";
 
 import { formatRelativeTime } from "../../../lib/common/Time";
 import { themeTooltipFlyoutProps } from "../../../lib/patternfly/flyoutAppendTo";
+import type { AssessmentModel } from "../../../models/AssessmentModel";
 import type { SourceModel } from "../../../models/SourceModel";
 import { routes } from "../../../routing/Routes";
 import {
@@ -127,6 +128,12 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
     {},
   );
   const [deleteTarget, setDeleteTarget] = useState<SourceModel | null>(null);
+  const [selectedAssessment, setSelectedAssessment] =
+    useState<AssessmentModel | null>(null);
+  const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
+  const [isUnsharingModalOpen, setIsUnsharingModalOpen] = useState(false);
+  const [isDeleteAssessmentModalOpen, setIsDeleteAssessmentModalOpen] =
+    useState(false);
   const [showOVASetUpInstructions, setShowOVASetUpInstructions] =
     useState(false);
   const [search, setSearch] = useState("");
@@ -341,6 +348,58 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
 
   const handleCreateAssessment = (): void => {
     onCreateAssessment?.();
+  };
+
+  const findAssessment = (assessmentId: string): AssessmentModel | undefined =>
+    vm.assessments.find((assessment) => assessment.id === assessmentId);
+
+  const handleShareAssessment = (assessmentId: string): void => {
+    const assessment = findAssessment(assessmentId);
+    if (assessment) {
+      setSelectedAssessment(assessment);
+      setIsSharingModalOpen(true);
+    }
+  };
+
+  const handleUnshareAssessment = (assessmentId: string): void => {
+    const assessment = findAssessment(assessmentId);
+    if (assessment) {
+      setSelectedAssessment(assessment);
+      setIsUnsharingModalOpen(true);
+    }
+  };
+
+  const handleDeleteAssessment = (assessmentId: string): void => {
+    const assessment = findAssessment(assessmentId);
+    if (assessment) {
+      setSelectedAssessment(assessment);
+      setIsDeleteAssessmentModalOpen(true);
+    }
+  };
+
+  const closeAssessmentActionModals = (): void => {
+    setSelectedAssessment(null);
+    setIsSharingModalOpen(false);
+    setIsUnsharingModalOpen(false);
+    setIsDeleteAssessmentModalOpen(false);
+  };
+
+  const handleConfirmShareAssessment = async (): Promise<void> => {
+    if (!selectedAssessment) return;
+    await vm.shareAssessment(selectedAssessment.id);
+    closeAssessmentActionModals();
+  };
+
+  const handleConfirmUnshareAssessment = async (): Promise<void> => {
+    if (!selectedAssessment) return;
+    await vm.unshareAssessment(selectedAssessment.id);
+    closeAssessmentActionModals();
+  };
+
+  const handleConfirmDeleteAssessment = async (): Promise<void> => {
+    if (!selectedAssessment) return;
+    await vm.deleteAssessment(selectedAssessment.id);
+    closeAssessmentActionModals();
   };
 
   // Show empty state if no sources
@@ -632,6 +691,9 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                       <SourceAssessmentsCard
                         source={source}
                         onCreateAssessment={() => handleCreateAssessment()}
+                        onDeleteAssessment={handleDeleteAssessment}
+                        onShareAssessment={handleShareAssessment}
+                        onUnshareAssessment={handleUnshareAssessment}
                       />
                     </ExpandableRowContent>
                   </Td>
@@ -666,6 +728,51 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
           To use it again, create a new discovery image and redeploy it.
         </ConfirmationModal>
       )}
+      <ConfirmationModal
+        isOpen={isSharingModalOpen}
+        onClose={closeAssessmentActionModals}
+        onCancel={closeAssessmentActionModals}
+        onConfirm={() => {
+          void handleConfirmShareAssessment();
+        }}
+        isDisabled={vm.isSharingAssessment}
+        title="Share assessment with partner"
+        primaryButtonVariant="primary"
+        confirmButtonText="Share"
+      >
+        Your partner will receive access to the{" "}
+        <b>{selectedAssessment?.name}</b> assessment.
+      </ConfirmationModal>
+      <ConfirmationModal
+        isOpen={isUnsharingModalOpen}
+        onClose={closeAssessmentActionModals}
+        onCancel={closeAssessmentActionModals}
+        onConfirm={() => {
+          void handleConfirmUnshareAssessment();
+        }}
+        isDisabled={vm.isUnsharingAssessment}
+        title="Unshare assessment with partner"
+        titleIconVariant="warning"
+        primaryButtonVariant="danger"
+        confirmButtonText="Unshare"
+      >
+        Your partner will lose access to the <b>{selectedAssessment?.name}</b>{" "}
+        assessment.
+      </ConfirmationModal>
+      <ConfirmationModal
+        isOpen={isDeleteAssessmentModalOpen}
+        onClose={closeAssessmentActionModals}
+        onCancel={closeAssessmentActionModals}
+        onConfirm={() => {
+          void handleConfirmDeleteAssessment();
+        }}
+        isDisabled={vm.isDeletingAssessment}
+        title="Delete Assessment"
+        titleIconVariant="warning"
+        primaryButtonVariant="danger"
+      >
+        Are you sure you want to delete <b>{selectedAssessment?.name}</b>?
+      </ConfirmationModal>
     </div>
   );
 };
