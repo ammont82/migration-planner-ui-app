@@ -10,7 +10,7 @@ import { routes } from "../../../routing/Routes";
 import {
   createEmptyManualEnvironmentForm,
   formFromEnhancementData,
-  toEnhancementData,
+  toEnhancementDataRequest,
 } from "../manual-environment/mapEnhancementData";
 import { manualEnvironmentReportPath } from "../manual-environment/paths";
 import type { ManualEnvironmentFormValues } from "../manual-environment/types";
@@ -107,7 +107,7 @@ export const useManualEnvironmentWizardViewModel =
         try {
           await store.saveEnhancementData(
             assessmentId,
-            toEnhancementData(data),
+            toEnhancementDataRequest(data),
           );
           void navigate(reportPath);
         } catch (err) {

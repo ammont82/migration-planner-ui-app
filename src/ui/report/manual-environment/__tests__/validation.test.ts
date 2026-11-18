@@ -42,6 +42,17 @@ describe("manualEnvironmentValidationSchema", () => {
     ).rejects.toThrow(/0 or more/);
   });
 
+  it("rejects a count above the supported range", async () => {
+    const form = {
+      ...createEmptyManualEnvironmentForm(),
+      perpetualLicensesCount: 2_147_483_648,
+    };
+
+    await expect(
+      manualEnvironmentValidationSchema.validate(form),
+    ).rejects.toThrow(/within the supported range/);
+  });
+
   it("rejects a non-integer count", async () => {
     const form = {
       ...createEmptyManualEnvironmentForm(),

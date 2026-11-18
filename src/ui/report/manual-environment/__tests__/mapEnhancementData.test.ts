@@ -10,12 +10,12 @@ import {
   createEmptyManualEnvironmentForm,
   formFromEnhancementData,
   hasEnhancementContent,
-  toEnhancementData,
+  toEnhancementDataRequest,
 } from "../mapEnhancementData";
 
 describe("mapEnhancementData", () => {
   it("maps an empty form to default vSphere answers", () => {
-    expect(toEnhancementData(createEmptyManualEnvironmentForm())).toEqual({
+    expect(toEnhancementDataRequest(createEmptyManualEnvironmentForm())).toEqual({
       vsphereCore: {
         vmEncryptionEnabled: false,
         srmEnabled: false,
@@ -28,7 +28,7 @@ describe("mapEnhancementData", () => {
     form.perpetualLicensesCount = 0;
     form.coresLicensingCount = 4;
 
-    expect(toEnhancementData(form).vmwareVersionCounts).toEqual({
+    expect(toEnhancementDataRequest(form).vmwareVersionCounts).toEqual({
       perpetualLicensesCount: 0,
       coresLicensingCount: 4,
     });
@@ -40,7 +40,7 @@ describe("mapEnhancementData", () => {
     form.vmEncryptionPolicy = "  restrict-to-cluster  ";
     form.vmEncryptionEnabled = true;
 
-    const data = toEnhancementData(form);
+    const data = toEnhancementDataRequest(form);
     expect(data.customerDetails).toEqual({
       targetHardware: "Dell PowerEdge",
     });
@@ -65,7 +65,7 @@ describe("mapEnhancementData", () => {
     form.targetHardware = "HPE";
     form.vmEncryptionEnabled = true;
 
-    expect(formFromEnhancementData(toEnhancementData(form))).toEqual(form);
+    expect(formFromEnhancementData(toEnhancementDataRequest(form))).toEqual(form);
   });
 
   it("treats a missing record as empty", () => {

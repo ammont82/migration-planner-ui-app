@@ -603,18 +603,19 @@ describe("AssessmentsStore", () => {
     });
 
     it("saveEnhancementData posts the payload", async () => {
-      const enhancement = {
+      const enhancementRequest = {
         customerDetails: { targetHardware: "Dell" },
       };
-      vi.mocked(api.saveAssessmentEnhancementData).mockResolvedValue(
-        enhancement,
-      );
+      const saved = {
+        customerDetails: { targetHardware: "Dell" },
+      };
+      vi.mocked(api.saveAssessmentEnhancementData).mockResolvedValue(saved);
 
       await expect(
-        store.saveEnhancementData("a-1", enhancement),
-      ).resolves.toEqual(enhancement);
+        store.saveEnhancementData("a-1", enhancementRequest),
+      ).resolves.toEqual(saved);
       expect(api.saveAssessmentEnhancementData).toHaveBeenCalledWith(
-        { id: "a-1", enhancementData: enhancement },
+        { id: "a-1", enhancementDataRequest: enhancementRequest },
         undefined,
       );
     });

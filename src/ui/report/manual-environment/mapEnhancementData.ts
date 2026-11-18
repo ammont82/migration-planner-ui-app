@@ -3,12 +3,13 @@ import type {
   AriaAutomationInput,
   AriaOpsInput,
   AriaSecureInput,
-  CustomerDetailsInput,
+  CustomerDetailsRequest,
   DeployedEnvironmentInput,
   EnhancementData,
+  EnhancementDataRequest,
   NsxInput,
   VMwareSubscriptionInput,
-  VMwareVersionCountsInput,
+  VMwareVersionCountsRequest,
   VsphereCoreInput,
 } from "@openshift-migration-advisor/planner-sdk";
 
@@ -96,10 +97,10 @@ const featureSet = <T extends string>(
   values: readonly T[],
 ): Set<T> | undefined => (values.length > 0 ? new Set(values) : undefined);
 
-export const toEnhancementData = (
+export const toEnhancementDataRequest = (
   form: ManualEnvironmentFormValues,
-): EnhancementData => {
-  const data: EnhancementData = {};
+): EnhancementDataRequest => {
+  const data: EnhancementDataRequest = {};
 
   if (form.deployedEnvironment) {
     const deployedEnvironment: DeployedEnvironmentInput = {
@@ -108,7 +109,7 @@ export const toEnhancementData = (
     data.deployedEnvironment = deployedEnvironment;
   }
 
-  const vmwareVersionCounts: VMwareVersionCountsInput = {};
+  const vmwareVersionCounts: VMwareVersionCountsRequest = {};
   const perpetualLicensesCount = definedCount(form.perpetualLicensesCount);
   const coresLicensingCount = definedCount(form.coresLicensingCount);
   const environmentCount = definedCount(form.environmentCount);
@@ -179,7 +180,7 @@ export const toEnhancementData = (
     data.ariaSecure = ariaSecure;
   }
 
-  const customerDetails: CustomerDetailsInput = {};
+  const customerDetails: CustomerDetailsRequest = {};
   const physicalLocationsCount = definedCount(form.physicalLocationsCount);
   const targetHardware = form.targetHardware.trim();
   if (physicalLocationsCount !== undefined) {

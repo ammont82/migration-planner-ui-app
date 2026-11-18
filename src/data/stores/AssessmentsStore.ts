@@ -7,6 +7,7 @@ import {
   type CalculateMigrationEstimationByComplexityRequest,
   type CalculateMigrationEstimationRequest,
   type EnhancementData,
+  type EnhancementDataRequest,
   type GetAssessmentClusterRequirementsStoredInputRequest,
   type InventoryData,
   ResponseError,
@@ -332,12 +333,12 @@ export class AssessmentsStore
 
   async saveEnhancementData(
     id: string,
-    enhancementData: EnhancementData,
+    enhancementDataRequest: EnhancementDataRequest,
     initOverrides?: RequestInit | InitOverrideFunction,
   ): Promise<EnhancementData> {
     try {
       return await this.api.saveAssessmentEnhancementData(
-        { id, enhancementData },
+        { id, enhancementDataRequest },
         initOverrides,
       );
     } catch (err) {

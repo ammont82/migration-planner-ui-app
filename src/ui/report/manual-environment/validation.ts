@@ -13,6 +13,9 @@ import type { ManualEnvironmentFormValues } from "./types";
 
 const MAX_TEXT_LENGTH = 1000;
 
+/** Matches the backend int32 upper bound for manual count fields (OMA-2950). */
+const MAX_MANUAL_COUNT = 2_147_483_647;
+
 /**
  * Count fields stay "" (rather than 0 or undefined) while empty so the
  * summary can tell "not provided" apart from a real 0 — see
@@ -29,6 +32,14 @@ const countField = (label: string) =>
         value === "" ||
         value === undefined ||
         (typeof value === "number" && Number.isInteger(value) && value >= 0),
+    )
+    .test(
+      "max-count",
+      `${label} must be a whole number within the supported range`,
+      (value) =>
+        value === "" ||
+        value === undefined ||
+        (typeof value === "number" && value <= MAX_MANUAL_COUNT),
     );
 
 const enumArray = <T extends string>(values: readonly T[]) =>

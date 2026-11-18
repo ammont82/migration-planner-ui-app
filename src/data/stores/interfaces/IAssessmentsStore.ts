@@ -7,6 +7,7 @@ import type {
   ClusterRequirementsResponse,
   ClusterRequirementsStoredInput,
   EnhancementData,
+  EnhancementDataRequest,
   GetAssessmentClusterRequirementsStoredInputRequest,
   InitOverrideFunction,
   InventoryData,
@@ -58,7 +59,7 @@ export interface IAssessmentsStore extends ExternalStore<AssessmentModel[]> {
   ): Promise<EnhancementData | null>;
   saveEnhancementData(
     id: string,
-    enhancementData: EnhancementData,
+    enhancementDataRequest: EnhancementDataRequest,
     initOverrides?: RequestInit | InitOverrideFunction,
   ): Promise<EnhancementData>;
   create(
