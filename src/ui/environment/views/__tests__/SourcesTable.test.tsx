@@ -354,7 +354,7 @@ describe("SourcesTable — all status states", () => {
     const table = screen.getByRole("grid", { name: "Sources table" });
     const dataRow = within(table).getAllByRole("row")[1];
     const cells = within(dataRow).getAllByRole("cell");
-    expect(cells[3]).toHaveTextContent("OVA downloaded");
+    expect(cells[4]).toHaveTextContent("OVA downloaded");
   });
 
   it('shows "N/A" for the agent version of an uploaded-manually source', () => {
@@ -374,8 +374,8 @@ describe("SourcesTable — all status states", () => {
     const table = screen.getByRole("grid", { name: "Sources table" });
     const dataRow = within(table).getAllByRole("row")[1];
     const cells = within(dataRow).getAllByRole("cell");
-    // Agent version is the 3rd column (index 2)
-    expect(cells[3]).toHaveTextContent("N/A");
+    // The expand control and the first three data columns precede Agent version.
+    expect(cells[4]).toHaveTextContent("N/A");
   });
 
   it('shows "N/A" without a popover when uploaded manually, even if agentVersionWarning is set', () => {
@@ -397,9 +397,9 @@ describe("SourcesTable — all status states", () => {
     const table = screen.getByRole("grid", { name: "Sources table" });
     const dataRow = within(table).getAllByRole("row")[1];
     const cells = within(dataRow).getAllByRole("cell");
-    expect(cells[3]).toHaveTextContent("N/A");
+    expect(cells[4]).toHaveTextContent("N/A");
     expect(
-      within(cells[3]).queryByRole("button", { name: "Version information" }),
+      within(cells[4]).queryByRole("button", { name: "Version information" }),
     ).not.toBeInTheDocument();
   });
 
@@ -445,8 +445,8 @@ describe("SourcesTable — all status states", () => {
     expect(ovaRow).toBeDefined();
 
     const cells = within(ovaRow!).getAllByRole("cell");
-    // VMs (4) should be "-"
-    expect(cells[4]).toHaveTextContent("-");
+    // VMs are at index 5 after adding Assessments.
+    expect(cells[5]).toHaveTextContent("-");
   });
 
   // --- Empty state --------------------------------------------------------

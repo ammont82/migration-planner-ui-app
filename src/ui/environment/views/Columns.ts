@@ -1,5 +1,6 @@
 export const Columns = {
   Name: "Name",
+  Assessments: "Assessments",
   CredentialsUrl: "Credentials URL",
   Status: "Appliance status",
   VersionStatus: "Agent version",
@@ -15,7 +16,7 @@ export type ColumnKey = keyof typeof Columns;
 
 export type SortableColumnKey = Exclude<
   ColumnKey,
-  "Actions" | "CredentialsUrl"
+  "Actions" | "CredentialsUrl" | "Assessments"
 >;
 
 export const SORTABLE_COLUMNS: SortableColumnKey[] = [

@@ -491,6 +491,9 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
               >
                 {Columns.Name}
               </Th>
+              <Th className={tableHeaderNormal} modifier="nowrap">
+                {Columns.Assessments}
+              </Th>
               <Th
                 className={tableHeaderNormal}
                 sort={getSortParams("Status")}
@@ -527,7 +530,7 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
           {showNoResultFound && (
             <Tbody>
               <Tr>
-                <Td colSpan={9}>
+                <Td colSpan={8}>
                   <EmptySearchResults title="No matching environment found" />
                 </Td>
               </Tr>
@@ -537,6 +540,9 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
             const agent = source.agent;
             const isUploadAllowed = !source.agent || source.onPremises;
             const isExpanded = isSourceExpanded(source.id);
+            const assessmentCount = vm.getAssessmentsForSource(
+              source.id,
+            ).length;
             return (
               <Tbody key={source.id} isExpanded={isExpanded}>
                 <Tr isContentExpanded={isExpanded}>
@@ -550,6 +556,21 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                   />
                   <Td dataLabel={Columns.Name} className={tableCellTop}>
                     {source.name}
+                  </Td>
+                  <Td dataLabel={Columns.Assessments} className={tableCellTop}>
+                    <Button
+                      variant="link"
+                      isInline
+                      aria-expanded={isExpanded}
+                      aria-label={
+                        isExpanded
+                          ? `Hide assessments for ${source.name}`
+                          : `Show assessments for ${source.name}`
+                      }
+                      onClick={() => toggleSourceExpanded(source.id)}
+                    >
+                      {assessmentCount}
+                    </Button>
                   </Td>
                   <Td dataLabel={Columns.Status} className={tableCellTop}>
                     <AgentStatusView
@@ -686,7 +707,7 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                   </Td>
                 </Tr>
                 <Tr isExpanded={isExpanded}>
-                  <Td colSpan={7}>
+                  <Td colSpan={8}>
                     <ExpandableRowContent hasNoBackground>
                       <SourceAssessmentsCard
                         source={source}
