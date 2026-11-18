@@ -31,6 +31,13 @@ vi.mock("../../view-models/EnvironmentPageContext", () => ({
   useEnvironmentPage: () => mockVm,
 }));
 
+vi.mock(
+  "@patternfly/react-component-groups/dist/dynamic/ColumnManagementModal",
+  () => ({
+    default: (): null => null,
+  }),
+);
+
 vi.mock("react-router-dom", () => ({
   Link: ({
     children,
@@ -291,6 +298,13 @@ describe("SourcesTable — all status states", () => {
     const rows = within(table).getAllByRole("row");
     // header row + 9 data rows
     expect(rows).toHaveLength(1 + ALL_STATUS_SOURCES.length);
+  });
+
+  it("shows Manage columns in the toolbar when sources exist", () => {
+    render(<SourcesTable onAddEnvironment={vi.fn()} />);
+    expect(
+      screen.getByRole("button", { name: "Manage columns" }),
+    ).toBeInTheDocument();
   });
 
   // --- Appliance status column --------------------------------------------

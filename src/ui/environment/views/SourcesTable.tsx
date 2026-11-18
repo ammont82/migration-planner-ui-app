@@ -1,5 +1,8 @@
 import { css } from "@emotion/css";
 import { EmptySearchResults } from "@openshift-migration-advisor/shared-components";
+import ColumnManagementModal, {
+  type ColumnManagementModalColumn,
+} from "@patternfly/react-component-groups/dist/dynamic/ColumnManagementModal";
 import {
   Button,
   Dropdown,
@@ -14,6 +17,7 @@ import {
 } from "@patternfly/react-core";
 import {
   RhUiArrowLeftIcon,
+  RhUiColumnsIcon,
   RhUiEllipsisVerticalIcon,
 } from "@patternfly/react-icons";
 import {
@@ -25,9 +29,10 @@ import {
   Thead,
   Tr,
 } from "@patternfly/react-table";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import useLocalStorage from "../../../hooks/useLocalStorage";
 import { formatRelativeTime } from "../../../lib/common/Time";
 import { themeTooltipFlyoutProps } from "../../../lib/patternfly/flyoutAppendTo";
 import type { AssessmentModel } from "../../../models/AssessmentModel";
@@ -50,12 +55,25 @@ import {
 } from "../helpers/discoveryVmStatus";
 import { useEnvironmentPage } from "../view-models/EnvironmentPageContext";
 import { AgentStatusView } from "./AgentStatusView";
-import { Columns, SORTABLE_COLUMNS, type SortableColumnKey } from "./Columns";
+import {
+  COLUMN_MANAGEMENT_KEYS,
+  COLUMN_MANAGEMENT_METADATA,
+  Columns,
+  DEFAULT_VISIBLE_COLUMNS,
+  type ManageableColumnKey,
+  MANDATORY_COLUMNS,
+  SORTABLE_COLUMNS,
+  type SortableColumnKey,
+} from "./Columns";
 import { DiscoveryAppliancesEmptyState } from "./DiscoveryAppliancesEmptyState";
 import { DiscoveryAppliancesErrorLoadingState } from "./DiscoveryAppliancesErrorLoadingState";
 import { SourceAssessmentsCard } from "./SourceAssessmentsCard";
 import { UploadInventoryAction } from "./UploadInventoryAction";
 import { getAgentVersionDisplayLabel, VersionStatus } from "./VersionStatus";
+
+const VISIBLE_COLUMNS_STORAGE_KEY =
+  "migration-advisor:discovery-appliances-visible-columns";
+const VISIBLE_COLUMNS_STORAGE_VERSION = 1;
 
 const VALUE_NOT_AVAILABLE = "-";
 
@@ -140,13 +158,73 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
   const [selectedStatuses, setSelectedStatuses] = useState<
     DiscoveryVmStatusFilterKey[]
   >([]);
-  const [sortBy, setSortBy] = useState<{
+  const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
+  const [userSelectedColumns, setUserSelectedColumns] = useLocalStorage<
+    ManageableColumnKey[]
+  >(
+    VISIBLE_COLUMNS_STORAGE_KEY,
+    DEFAULT_VISIBLE_COLUMNS,
+    VISIBLE_COLUMNS_STORAGE_VERSION,
+  );
+
+  const visibleColumns = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...userSelectedColumns.filter((key) =>
+            COLUMN_MANAGEMENT_KEYS.includes(key),
+          ),
+          ...MANDATORY_COLUMNS,
+        ]),
+      ),
+    [userSelectedColumns],
+  );
+
+  const [internalSortBy, setInternalSortBy] = useState<{
     columnKey: SortableColumnKey;
     direction: "asc" | "desc";
   }>({
     columnKey: "Name",
     direction: "asc",
   });
+
+  const sortBy = useMemo(() => {
+    const sortedKey = internalSortBy.columnKey;
+    if (!visibleColumns.includes(sortedKey)) {
+      return { columnKey: "Name" as const, direction: "asc" as const };
+    }
+    return internalSortBy;
+  }, [internalSortBy, visibleColumns]);
+
+  const setSortBy = setInternalSortBy;
+
+  const isColumnVisible = (columnKey: ManageableColumnKey): boolean =>
+    visibleColumns.includes(columnKey);
+
+  const tableColumnCount = 2 + visibleColumns.length;
+
+  const columnManagementData = useMemo(
+    (): ColumnManagementModalColumn[] =>
+      COLUMN_MANAGEMENT_KEYS.map((key) => ({
+        key,
+        title: COLUMN_MANAGEMENT_METADATA[key].title,
+        isShownByDefault: COLUMN_MANAGEMENT_METADATA[key].isShownByDefault,
+        isShown: visibleColumns.includes(key),
+        isUntoggleable: COLUMN_MANAGEMENT_METADATA[key].isUntoggleable,
+      })),
+    [visibleColumns],
+  );
+
+  const handleApplyColumns = useCallback(
+    (newColumns: ColumnManagementModalColumn[]) => {
+      const selectedKeys = newColumns
+        .filter((col) => col.isShown)
+        .map((col) => col.key as ManageableColumnKey);
+      setUserSelectedColumns(selectedKeys);
+      setIsColumnModalOpen(false);
+    },
+    [setUserSelectedColumns],
+  );
 
   const clearAllFilters = (): void => {
     setSearch("");
@@ -450,6 +528,16 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
             attributes={filterAttributes}
             defaultActiveAttributeId="name"
           />
+          {hasSources ? (
+            <ToolbarItem>
+              <Button
+                variant="control"
+                icon={<RhUiColumnsIcon />}
+                onClick={() => setIsColumnModalOpen(true)}
+                aria-label="Manage columns"
+              />
+            </ToolbarItem>
+          ) : null}
           {hasSources && onAddEnvironment ? (
             <ToolbarItem>
               <Button variant="primary" onClick={onAddEnvironment}>
@@ -484,53 +572,92 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
           <Thead>
             <Tr>
               <Th modifier="fitContent" screenReaderText="Expand assessments" />
-              <Th
-                className={tableHeaderNormal}
-                sort={getSortParams("Name")}
-                modifier="nowrap"
-              >
-                {Columns.Name}
-              </Th>
+              {isColumnVisible("Name") && (
+                <Th
+                  className={tableHeaderNormal}
+                  sort={getSortParams("Name")}
+                  modifier="nowrap"
+                >
+                  {Columns.Name}
+                </Th>
+              )}
               <Th className={tableHeaderNormal} modifier="nowrap">
                 {Columns.Assessments}
               </Th>
-              <Th
-                className={tableHeaderNormal}
-                sort={getSortParams("Status")}
-                modifier="nowrap"
-              >
-                {Columns.Status}
-              </Th>
-              <Th
-                className={tableHeaderNormal}
-                sort={getSortParams("VersionStatus")}
-                modifier="nowrap"
-              >
-                {Columns.VersionStatus}
-              </Th>
-              <Th
-                className={tableHeaderNormal}
-                sort={getSortParams("VMs")}
-                modifier="nowrap"
-              >
-                {Columns.VMs}
-              </Th>
-              <Th
-                className={tableHeaderNormal}
-                sort={getSortParams("LastSeen")}
-                modifier="nowrap"
-              >
-                {Columns.LastSeen}
-              </Th>
-              <Th modifier="fitContent" screenReaderText="Actions">
-                {Columns.Actions}
-              </Th>
+              {isColumnVisible("Status") && (
+                <Th
+                  className={tableHeaderNormal}
+                  sort={getSortParams("Status")}
+                  modifier="nowrap"
+                >
+                  {Columns.Status}
+                </Th>
+              )}
+              {isColumnVisible("VersionStatus") && (
+                <Th
+                  className={tableHeaderNormal}
+                  sort={getSortParams("VersionStatus")}
+                  modifier="nowrap"
+                >
+                  {Columns.VersionStatus}
+                </Th>
+              )}
+              {isColumnVisible("Hosts") && (
+                <Th
+                  className={tableHeaderNormal}
+                  sort={getSortParams("Hosts")}
+                  modifier="nowrap"
+                >
+                  {Columns.Hosts}
+                </Th>
+              )}
+              {isColumnVisible("VMs") && (
+                <Th
+                  className={tableHeaderNormal}
+                  sort={getSortParams("VMs")}
+                  modifier="nowrap"
+                >
+                  {Columns.VMs}
+                </Th>
+              )}
+              {isColumnVisible("Networks") && (
+                <Th
+                  className={tableHeaderNormal}
+                  sort={getSortParams("Networks")}
+                  modifier="nowrap"
+                >
+                  {Columns.Networks}
+                </Th>
+              )}
+              {isColumnVisible("Datastores") && (
+                <Th
+                  className={tableHeaderNormal}
+                  sort={getSortParams("Datastores")}
+                  modifier="nowrap"
+                >
+                  {Columns.Datastores}
+                </Th>
+              )}
+              {isColumnVisible("LastSeen") && (
+                <Th
+                  className={tableHeaderNormal}
+                  sort={getSortParams("LastSeen")}
+                  modifier="nowrap"
+                >
+                  {Columns.LastSeen}
+                </Th>
+              )}
+              {isColumnVisible("Actions") && (
+                <Th modifier="fitContent" screenReaderText="Actions">
+                  {Columns.Actions}
+                </Th>
+              )}
             </Tr>
           </Thead>
           {showNoResultFound && (
             <Tbody>
               <Tr>
-                <Td colSpan={8}>
+                <Td colSpan={tableColumnCount}>
                   <EmptySearchResults title="No matching environment found" />
                 </Td>
               </Tr>
@@ -554,9 +681,11 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                       expandId: `source-assessments-${source.id}`,
                     }}
                   />
-                  <Td dataLabel={Columns.Name} className={tableCellTop}>
-                    {source.name}
-                  </Td>
+                  {isColumnVisible("Name") && (
+                    <Td dataLabel={Columns.Name} className={tableCellTop}>
+                      {source.name}
+                    </Td>
+                  )}
                   <Td dataLabel={Columns.Assessments} className={tableCellTop}>
                     <Button
                       variant="link"
@@ -572,142 +701,170 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                       {assessmentCount}
                     </Button>
                   </Td>
-                  <Td dataLabel={Columns.Status} className={tableCellTop}>
-                    <AgentStatusView
-                      status={source.displayStatus}
-                      statusInfo={
-                        source.isReady
-                          ? undefined
-                          : agent
-                            ? agent.statusInfo
-                            : "Not connected"
-                      }
-                      credentialUrl={agent ? agent.credentialUrl : ""}
-                      uploadedManually={isInventoryUploadedManually(source)}
-                      updatedAt={source?.updatedAt}
-                    />
-                  </Td>
-                  <Td
-                    dataLabel={Columns.VersionStatus}
-                    className={tableCellTop}
-                  >
-                    <VersionStatus
-                      displayStatus={source.displayStatus}
-                      isUploadedManually={isSourceUploadedManually(source)}
-                      agentVersion={source.agentVersion}
-                      agentVersionWarning={source.agentVersionWarning}
-                    />
-                  </Td>
-                  <Td dataLabel={Columns.VMs} className={tableCellTop}>
-                    {source?.inventory?.vcenter?.vms.total ??
-                      VALUE_NOT_AVAILABLE}
-                  </Td>
-                  <Td dataLabel={Columns.LastSeen} className={tableCellTop}>
-                    {source?.updatedAt ? (
-                      <Tooltip
-                        {...themeTooltipFlyoutProps}
-                        content={new Date(source.updatedAt).toLocaleString()}
-                      >
-                        <span>{formatRelativeTime(source.updatedAt)}</span>
-                      </Tooltip>
-                    ) : (
-                      "-"
-                    )}
-                  </Td>
-                  <Td dataLabel={Columns.Actions} modifier="fitContent">
-                    {uploadOnly ? (
-                      <>
-                        {isUploadAllowed && source.name !== "Example" && (
-                          <UploadInventoryAction sourceId={source.id} />
-                        )}
-                      </>
-                    ) : (
-                      <Dropdown
-                        isOpen={openDropdowns[source.id] || false}
-                        popperProps={{
-                          appendTo: () => document.body,
-                          position: "end",
-                        }}
-                        onOpenChange={(isOpen) =>
-                          setOpenDropdowns((prev) => ({
-                            ...prev,
-                            [source.id]: isOpen,
-                          }))
+                  {isColumnVisible("Status") && (
+                    <Td dataLabel={Columns.Status} className={tableCellTop}>
+                      <AgentStatusView
+                        status={source.displayStatus}
+                        statusInfo={
+                          source.isReady
+                            ? undefined
+                            : agent
+                              ? agent.statusInfo
+                              : "Not connected"
                         }
-                        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                          <MenuToggle
-                            ref={toggleRef}
-                            aria-label="Actions"
-                            variant="plain"
-                            onClick={() =>
-                              setOpenDropdowns((prev) => ({
-                                ...prev,
-                                [source.id]: !prev[source.id],
-                              }))
-                            }
-                            icon={<RhUiEllipsisVerticalIcon />}
-                            style={{ padding: 0, width: "fit-content" }}
-                          />
-                        )}
-                      >
-                        <DropdownList>
-                          {onCreateAssessment ? (
+                        credentialUrl={agent ? agent.credentialUrl : ""}
+                        uploadedManually={isInventoryUploadedManually(source)}
+                        updatedAt={source?.updatedAt}
+                      />
+                    </Td>
+                  )}
+                  {isColumnVisible("VersionStatus") && (
+                    <Td
+                      dataLabel={Columns.VersionStatus}
+                      className={tableCellTop}
+                    >
+                      <VersionStatus
+                        displayStatus={source.displayStatus}
+                        isUploadedManually={isSourceUploadedManually(source)}
+                        agentVersion={source.agentVersion}
+                        agentVersionWarning={source.agentVersionWarning}
+                      />
+                    </Td>
+                  )}
+                  {isColumnVisible("Hosts") && (
+                    <Td dataLabel={Columns.Hosts} className={tableCellTop}>
+                      {source?.inventory?.vcenter?.infra.totalHosts ??
+                        VALUE_NOT_AVAILABLE}
+                    </Td>
+                  )}
+                  {isColumnVisible("VMs") && (
+                    <Td dataLabel={Columns.VMs} className={tableCellTop}>
+                      {source?.inventory?.vcenter?.vms.total ??
+                        VALUE_NOT_AVAILABLE}
+                    </Td>
+                  )}
+                  {isColumnVisible("Networks") && (
+                    <Td dataLabel={Columns.Networks} className={tableCellTop}>
+                      {source?.inventory?.vcenter?.infra.networks?.length ??
+                        VALUE_NOT_AVAILABLE}
+                    </Td>
+                  )}
+                  {isColumnVisible("Datastores") && (
+                    <Td dataLabel={Columns.Datastores} className={tableCellTop}>
+                      {source?.inventory?.vcenter?.infra.datastores?.length ??
+                        VALUE_NOT_AVAILABLE}
+                    </Td>
+                  )}
+                  {isColumnVisible("LastSeen") && (
+                    <Td dataLabel={Columns.LastSeen} className={tableCellTop}>
+                      {source?.updatedAt ? (
+                        <Tooltip
+                          {...themeTooltipFlyoutProps}
+                          content={new Date(source.updatedAt).toLocaleString()}
+                        >
+                          <span>{formatRelativeTime(source.updatedAt)}</span>
+                        </Tooltip>
+                      ) : (
+                        "-"
+                      )}
+                    </Td>
+                  )}
+                  {isColumnVisible("Actions") && (
+                    <Td dataLabel={Columns.Actions} modifier="fitContent">
+                      {uploadOnly ? (
+                        <>
+                          {isUploadAllowed && source.name !== "Example" && (
+                            <UploadInventoryAction sourceId={source.id} />
+                          )}
+                        </>
+                      ) : (
+                        <Dropdown
+                          isOpen={openDropdowns[source.id] || false}
+                          popperProps={{
+                            appendTo: () => document.body,
+                            position: "end",
+                          }}
+                          onOpenChange={(isOpen) =>
+                            setOpenDropdowns((prev) => ({
+                              ...prev,
+                              [source.id]: isOpen,
+                            }))
+                          }
+                          toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                            <MenuToggle
+                              ref={toggleRef}
+                              aria-label="Actions"
+                              variant="plain"
+                              onClick={() =>
+                                setOpenDropdowns((prev) => ({
+                                  ...prev,
+                                  [source.id]: !prev[source.id],
+                                }))
+                              }
+                              icon={<RhUiEllipsisVerticalIcon />}
+                              style={{ padding: 0, width: "fit-content" }}
+                            />
+                          )}
+                        >
+                          <DropdownList>
+                            {onCreateAssessment ? (
+                              <DropdownItem
+                                onClick={() => handleCreateAssessment()}
+                              >
+                                Create assessment
+                              </DropdownItem>
+                            ) : null}
                             <DropdownItem
-                              onClick={() => handleCreateAssessment()}
+                              isDisabled={!onDownloadOva}
+                              onClick={() => {
+                                setOpenDropdowns((prev) => ({
+                                  ...prev,
+                                  [source.id]: false,
+                                }));
+                                onDownloadOva?.(source.id);
+                              }}
                             >
-                              Create assessment
+                              Download OVA
                             </DropdownItem>
-                          ) : null}
-                          <DropdownItem
-                            isDisabled={!onDownloadOva}
-                            onClick={() => {
-                              setOpenDropdowns((prev) => ({
-                                ...prev,
-                                [source.id]: false,
-                              }));
-                              onDownloadOva?.(source.id);
-                            }}
-                          >
-                            Download OVA
-                          </DropdownItem>
-                          <DropdownItem
-                            onClick={() => {
-                              setOpenDropdowns((prev) => ({
-                                ...prev,
-                                [source.id]: false,
-                              }));
-                              setShowOVASetUpInstructions(true);
-                            }}
-                          >
-                            OVA set up instructions
-                          </DropdownItem>
-                          <DropdownItem
-                            isDisabled={!onEditEnvironment}
-                            onClick={() => {
-                              setOpenDropdowns((prev) => ({
-                                ...prev,
-                                [source.id]: false,
-                              }));
-                              onEditEnvironment?.(source.id);
-                            }}
-                          >
-                            Edit discovery appliance
-                          </DropdownItem>
-                          <DropdownItem
-                            isDisabled={
-                              vm.isDeletingSource || source.name === "Example"
-                            }
-                            onClick={() => setDeleteTarget(source)}
-                          >
-                            Delete discovery appliance
-                          </DropdownItem>
-                        </DropdownList>
-                      </Dropdown>
-                    )}
-                  </Td>
+                            <DropdownItem
+                              onClick={() => {
+                                setOpenDropdowns((prev) => ({
+                                  ...prev,
+                                  [source.id]: false,
+                                }));
+                                setShowOVASetUpInstructions(true);
+                              }}
+                            >
+                              OVA set up instructions
+                            </DropdownItem>
+                            <DropdownItem
+                              isDisabled={!onEditEnvironment}
+                              onClick={() => {
+                                setOpenDropdowns((prev) => ({
+                                  ...prev,
+                                  [source.id]: false,
+                                }));
+                                onEditEnvironment?.(source.id);
+                              }}
+                            >
+                              Edit discovery appliance
+                            </DropdownItem>
+                            <DropdownItem
+                              isDisabled={
+                                vm.isDeletingSource || source.name === "Example"
+                              }
+                              onClick={() => setDeleteTarget(source)}
+                            >
+                              Delete discovery appliance
+                            </DropdownItem>
+                          </DropdownList>
+                        </Dropdown>
+                      )}
+                    </Td>
+                  )}
                 </Tr>
                 <Tr isExpanded={isExpanded}>
-                  <Td colSpan={8}>
+                  <Td colSpan={tableColumnCount}>
                     <ExpandableRowContent hasNoBackground>
                       <SourceAssessmentsCard
                         source={source}
@@ -729,6 +886,12 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
           onClose={() => setShowOVASetUpInstructions(false)}
         />
       )}
+      <ColumnManagementModal
+        isOpen={isColumnModalOpen}
+        onClose={() => setIsColumnModalOpen(false)}
+        appliedColumns={columnManagementData}
+        applyColumns={handleApplyColumns}
+      />
       {deleteTarget && (
         <ConfirmationModal
           title="Delete Environment"
