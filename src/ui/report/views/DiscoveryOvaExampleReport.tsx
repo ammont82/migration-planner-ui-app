@@ -26,6 +26,7 @@ const clusterToggleStyle = css`
 
 import { routes } from "../../../routing/Routes";
 import { AppPage } from "../../core/components/AppPage";
+import { HOME_TAB_LABELS } from "../../home/constants";
 import { useDiscoveryOvaExampleReportViewModel } from "../view-models/useDiscoveryOvaExampleReportViewModel";
 import type { ClusterOption } from "./assessment-report/ClusterView";
 import { Dashboard } from "./assessment-report/Dashboard";
@@ -45,7 +46,7 @@ const DiscoveryOvaExampleReport: React.FC = () => {
         {
           key: 2,
           to: routes.assessments,
-          children: "assessments",
+          children: HOME_TAB_LABELS.assessments,
         },
         {
           key: 3,

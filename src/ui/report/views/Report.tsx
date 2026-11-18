@@ -32,6 +32,7 @@ import { themeTooltipFlyoutProps } from "../../../lib/patternfly/flyoutAppendTo"
 import { routes } from "../../../routing/Routes";
 import CreateRvtoolsAssessmentModal from "../../assessment/views/create-rvtools/CreateRvtoolsAssessmentModal";
 import { AppPage } from "../../core/components/AppPage";
+import { HOME_TAB_LABELS } from "../../home/constants";
 import CreateAssessmentDropdown from "../../core/components/CreateAssessmentDropdown";
 import { fromGroupOptionId } from "../helpers/groupViewModel";
 import { useReportPageViewModel } from "../view-models/useReportPageViewModel";
@@ -77,7 +78,7 @@ const ReportContent: React.FC = () => {
           {
             key: 2,
             to: routes.assessments,
-            children: "assessments",
+            children: HOME_TAB_LABELS.assessments,
           },
           { key: 3, children: "Assessment not found", isActive: true },
         ]}
@@ -159,7 +160,7 @@ const ReportContent: React.FC = () => {
           {
             key: 2,
             to: routes.assessments,
-            children: "assessments",
+            children: HOME_TAB_LABELS.assessments,
           },
           {
             key: 3,

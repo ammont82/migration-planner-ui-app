@@ -7,6 +7,7 @@ import { Symbols } from "../../../config/Dependencies";
 import type { IPartnerRequestsStore } from "../../../data/stores/interfaces/IPartnerRequestsStore";
 import { useIdentity } from "../../../hooks/useIdentity";
 import { routes } from "../../../routing/Routes";
+import { HOME_TAB_LABELS, PARTNER_TAB_LABELS } from "../constants";
 
 export type HomeScreenOutletContext = {
   rvtoolsOpenToken?: string;
@@ -84,18 +85,52 @@ export const useHomeScreenViewModel = (): HomeScreenViewModel => {
 
   const [rvtoolsOpenToken, setRvtoolsOpenToken] = useState(false);
 
+  const getPartnerTabConfig = () => {
+    if (!identity) return null;
+
+    switch (identity.kind) {
+      case "regular":
+        return {
+          label: PARTNER_TAB_LABELS.regular,
+          path: routes.partners,
+          key: 3,
+        };
+      case "customer":
+        return {
+          label: PARTNER_TAB_LABELS.customer,
+          path: routes.myPartner,
+          key: 3,
+        };
+      case "partner":
+        return {
+          label: PARTNER_TAB_LABELS.partner,
+          path: routes.customers,
+          key: 3,
+        };
+      case "admin":
+        return {
+          label: PARTNER_TAB_LABELS.admin,
+          path: routes.adminGroups,
+          key: 3,
+        };
+      default:
+        return null;
+    }
+  };
+  const partnerTab = getPartnerTabConfig();
+
   const getBreadcrumbLabel = (): string => {
     switch (activeTabKey) {
       case 0:
-        return "assessments";
+        return HOME_TAB_LABELS.assessments;
       case 1:
-        return "environments";
+        return HOME_TAB_LABELS.environments;
       case 2:
-        return "tools";
+        return HOME_TAB_LABELS.tools;
       case 3:
-        return "partners";
+        return partnerTab?.label ?? PARTNER_TAB_LABELS.regular;
       default:
-        return "assessments";
+        return HOME_TAB_LABELS.assessments;
     }
   };
 
@@ -136,40 +171,6 @@ export const useHomeScreenViewModel = (): HomeScreenViewModel => {
     setRvtoolsOpenToken(true);
     void navigate(routes.assessments); // switch to assessments tab
   };
-
-  const getPartnerTabConfig = () => {
-    if (!identity) return null;
-
-    switch (identity.kind) {
-      case "regular":
-        return {
-          label: "Partners",
-          path: routes.partners,
-          key: 3,
-        };
-      case "customer":
-        return {
-          label: "My partner",
-          path: routes.myPartner,
-          key: 3,
-        };
-      case "partner":
-        return {
-          label: "Customers",
-          path: routes.customers,
-          key: 3,
-        };
-      case "admin":
-        return {
-          label: "Partners administration",
-          path: routes.adminGroups,
-          key: 3,
-        };
-      default:
-        return null;
-    }
-  };
-  const partnerTab = getPartnerTabConfig();
 
   return {
     activeTabKey,

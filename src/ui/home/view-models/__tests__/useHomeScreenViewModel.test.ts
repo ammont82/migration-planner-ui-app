@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { IdentityView } from "../../../../data/stores/interfaces/IAccountStore";
 import { routes } from "../../../../routing/Routes";
+import { HOME_TAB_LABELS, PARTNER_TAB_LABELS } from "../../constants";
 import { useHomeScreenViewModel } from "../useHomeScreenViewModel";
 
 // ---------------------------------------------------------------------------
@@ -106,25 +107,41 @@ describe("useHomeScreenViewModel", () => {
     expect(result.current.activeTabKey).toBe(2);
   });
 
-  it("breadcrumbs shows assessments when activeTabKey is 0", () => {
+  it("breadcrumbs shows RVTools assessments when activeTabKey is 0", () => {
     mockPathname = "/assessments";
     const { result } = renderHook(() => useHomeScreenViewModel());
     const activeCrumb = result.current.breadcrumbs.find((b) => b.isActive);
-    expect(activeCrumb?.children).toBe("assessments");
+    expect(activeCrumb?.children).toBe(HOME_TAB_LABELS.assessments);
   });
 
-  it("breadcrumbs shows environments when activeTabKey is 1", () => {
+  it("breadcrumbs shows Discovery appliances when activeTabKey is 1", () => {
     mockPathname = "/environments";
     const { result } = renderHook(() => useHomeScreenViewModel());
     const activeCrumb = result.current.breadcrumbs.find((b) => b.isActive);
-    expect(activeCrumb?.children).toBe("environments");
+    expect(activeCrumb?.children).toBe(HOME_TAB_LABELS.environments);
   });
 
-  it("breadcrumbs shows tools when activeTabKey is 2", () => {
+  it("breadcrumbs shows Tools when activeTabKey is 2", () => {
     mockPathname = "/tools";
     const { result } = renderHook(() => useHomeScreenViewModel());
     const activeCrumb = result.current.breadcrumbs.find((b) => b.isActive);
-    expect(activeCrumb?.children).toBe("tools");
+    expect(activeCrumb?.children).toBe(HOME_TAB_LABELS.tools);
+  });
+
+  it("breadcrumbs shows partner tab label when activeTabKey is 3", () => {
+    mockPathname = "/partners";
+    const unsubscribe = vi.fn();
+    const regularIdentity = createMockIdentity("regular");
+
+    mockAccountStore = {
+      getIdentity: vi.fn().mockResolvedValue(null),
+      subscribe: vi.fn(() => unsubscribe),
+      getSnapshot: vi.fn().mockReturnValue(regularIdentity),
+    };
+
+    const { result } = renderHook(() => useHomeScreenViewModel());
+    const activeCrumb = result.current.breadcrumbs.find((b) => b.isActive);
+    expect(activeCrumb?.children).toBe(PARTNER_TAB_LABELS.regular);
   });
 
   it("handleTabClick navigates to environments route when tabIndex is 1", () => {

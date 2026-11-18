@@ -17,6 +17,7 @@ import { FormProvider } from "react-hook-form";
 
 import { routes } from "../../../../routing/Routes";
 import { AppPage } from "../../../core/components/AppPage";
+import { HOME_TAB_LABELS } from "../../../home/constants";
 import {
   WIZARD_DESCRIPTION,
   WIZARD_STEPS,
@@ -52,7 +53,11 @@ export const ManualEnvironmentWizardPage: React.FC = () => {
       <AppPage
         breadcrumbs={[
           { key: 1, children: "Migration advisor" },
-          { key: 2, to: routes.assessments, children: "assessments" },
+          {
+            key: 2,
+            to: routes.assessments,
+            children: HOME_TAB_LABELS.assessments,
+          },
           { key: 3, to: vm.reportPath, children: reportLabel },
           { key: 4, children: WIZARD_TITLE, isActive: true },
         ]}
@@ -86,7 +91,11 @@ export const ManualEnvironmentWizardPage: React.FC = () => {
     <AppPage
       breadcrumbs={[
         { key: 1, children: "Migration advisor" },
-        { key: 2, to: routes.assessments, children: "assessments" },
+        {
+          key: 2,
+          to: routes.assessments,
+          children: HOME_TAB_LABELS.assessments,
+        },
         { key: 3, to: vm.reportPath, children: reportLabel },
         { key: 4, children: WIZARD_TITLE, isActive: true },
       ]}

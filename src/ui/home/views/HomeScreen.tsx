@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom";
 
 import { AppPage } from "../../core/components/AppPage";
 import { PartnerTab } from "../components/PartnerTab";
+import { HOME_TAB_LABELS } from "../constants";
 import { useHomeScreenViewModel } from "../view-models/useHomeScreenViewModel";
 import HomeScreenSubtitle from "./HomeScreenSubtitle";
 
@@ -24,18 +25,18 @@ export const HomeScreen: React.FC = () => {
       >
         <Tab
           eventKey={0}
-          title={<TabTitleText>RVTools assessments</TabTitleText>}
-          aria-label="RVTools assessments tab"
+          title={<TabTitleText>{HOME_TAB_LABELS.assessments}</TabTitleText>}
+          aria-label={`${HOME_TAB_LABELS.assessments} tab`}
         />
         <Tab
           eventKey={1}
-          title={<TabTitleText>Discovery appliances</TabTitleText>}
-          aria-label="Discovery appliances tab"
+          title={<TabTitleText>{HOME_TAB_LABELS.environments}</TabTitleText>}
+          aria-label={`${HOME_TAB_LABELS.environments} tab`}
         />
         <Tab
           eventKey={2}
-          title={<TabTitleText>Tools</TabTitleText>}
-          aria-label="Tools tab"
+          title={<TabTitleText>{HOME_TAB_LABELS.tools}</TabTitleText>}
+          aria-label={`${HOME_TAB_LABELS.tools} tab`}
         />
         {vm.partnerTab && (
           <PartnerTab

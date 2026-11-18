@@ -22,6 +22,7 @@ import React, { useEffect } from "react";
 
 import { routes } from "../../../routing/Routes";
 import { AppPage } from "../../core/components/AppPage";
+import { HOME_TAB_LABELS } from "../../home/constants";
 import { safeExternalUrl } from "../../core/utils/urlValidation";
 import { EnvironmentPageProvider } from "../../environment/view-models/EnvironmentPageContext";
 import {
@@ -60,7 +61,7 @@ const CreateFromOvaContent: React.FC = () => {
         {
           key: 2,
           to: routes.root,
-          children: "assessments",
+          children: HOME_TAB_LABELS.assessments,
         },
         { key: 3, isActive: true, children: "create new assessment" },
       ]}

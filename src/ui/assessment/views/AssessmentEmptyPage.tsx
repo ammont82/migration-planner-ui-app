@@ -10,6 +10,7 @@ import React from "react";
 
 import { routes } from "../../../routing/Routes";
 import { AppPage } from "../../core/components/AppPage";
+import { HOME_TAB_LABELS } from "../../home/constants";
 import HomeScreenSubtitle from "../../home/views/HomeScreenSubtitle";
 import { useAssessmentEmptyPageViewModel } from "../view-models/useAssessmentEmptyPageViewModel";
 import { DiscoveryApplianceCard } from "./assessment-empty/DiscoveryApplianceCard";
@@ -23,7 +24,11 @@ export const AssessmentEmptyPage: React.FC = () => {
     <AppPage
       breadcrumbs={[
         { key: 1, to: routes.root, children: "Migration advisor" },
-        { key: 2, to: routes.assessments, children: "assessments" },
+        {
+          key: 2,
+          to: routes.assessments,
+          children: HOME_TAB_LABELS.assessments,
+        },
         { key: 3, isActive: true, children: "Create assessment" },
       ]}
       title="Assess your migration from vCenter to OpenShift"
