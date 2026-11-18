@@ -88,6 +88,19 @@ describe("useDashboardViewModel", () => {
     expect(result.current.selectedClusterDetails).toBeUndefined();
   });
 
+  it("overrides vCenter count for multi-RVTools aggregate view", () => {
+    const { result } = renderHook(() =>
+      useDashboardViewModel({
+        infra: baseInfra,
+        clusters: { "cluster-a": clusterInventory },
+        isAggregateView: true,
+        infrastructureVcenterCount: 2,
+      }),
+    );
+
+    expect(result.current.infrastructureSummary.vCenters).toBe(2);
+  });
+
   it("builds details for the selected cluster when not in aggregate view", () => {
     const { result } = renderHook(() =>
       useDashboardViewModel({

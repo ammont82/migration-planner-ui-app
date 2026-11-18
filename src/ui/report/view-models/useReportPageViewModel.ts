@@ -35,6 +35,7 @@ import {
   type ClusterViewModel,
   resolveSelectedClusterId,
 } from "../helpers/clusterViewModel";
+import { buildAggregateClustersFromSubsets } from "../helpers/assessmentV2Inventory";
 import {
   extractScopedInventoryData,
   type ReportInventorySource,
@@ -279,6 +280,7 @@ export interface ReportPageViewModel {
   reportSummaryVms: VMs | undefined;
   vcenterId: string | undefined;
   vcenterVersion: string | undefined;
+  infrastructureVcenterCount?: number;
 
   // Scoped cluster view (typed with required fields for Dashboard rendering)
   scopedClusterView: ClusterScopedView | undefined;
@@ -619,6 +621,19 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
   const showVcenterFilter =
     useV2ReportInventory && rvtoolsSubsetInventories.length > 1;
 
+  const isAllVcentersScope =
+    showVcenterFilter && rvtoolsEffectiveVcenterSubsetId === ALL_VMS_GROUP_ID;
+
+  const clustersForView = useMemo(() => {
+    if (!isAllVcentersScope) {
+      return clusters;
+    }
+    if (clusters && Object.keys(clusters).length > 0) {
+      return clusters;
+    }
+    return buildAggregateClustersFromSubsets(rvtoolsSubsetInventories);
+  }, [clusters, isAllVcentersScope, rvtoolsSubsetInventories]);
+
   const allVcentersClusterCount = useRvtoolsAllVcentersClusterCount({
     enabled: showVcenterFilter,
     assessmentId: id,
@@ -703,10 +718,10 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
       buildClusterViewModel({
         infra,
         vms,
-        clusters,
+        clusters: clustersForView,
         selectedClusterId,
       }),
-    [infra, vms, clusters, selectedClusterId],
+    [infra, vms, clustersForView, selectedClusterId],
   );
 
   const clusterSelectDisabled = computeClusterSelectDisabled(
@@ -745,18 +760,18 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
       totalVcenterCount,
       selectedClusterId,
       allClustersId: ALL_CLUSTERS_ID,
-      clustersInScope: clusters,
+      clustersInScope: clustersForView,
     });
     const clusterCount =
-      showVcenterFilter &&
-      rvtoolsEffectiveVcenterSubsetId === ALL_VMS_GROUP_ID &&
+      isAllVcentersScope &&
       counts.clusterCount === 0 &&
       reportSummaryClusterCount > 0
         ? reportSummaryClusterCount
         : counts.clusterCount;
     return formatReportScopeCounts({ ...counts, clusterCount });
   }, [
-    clusters,
+    clustersForView,
+    isAllVcentersScope,
     reportSummaryClusterCount,
     rvtoolsEffectiveVcenterSubsetId,
     scopedClusterView?.viewVms?.total,
@@ -914,6 +929,9 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
     reportSummaryVms,
     vcenterId,
     vcenterVersion,
+    infrastructureVcenterCount: isAllVcentersScope
+      ? totalVcenterCount
+      : undefined,
 
     scopedClusterView,
     canExportReport,

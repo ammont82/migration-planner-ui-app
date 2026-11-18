@@ -336,8 +336,16 @@ export class AssessmentsStore
     initOverrides?: RequestInit | InitOverrideFunction,
   ): Promise<EnhancementData> {
     try {
+      type SaveEnhancementRequest = Parameters<
+        AssessmentApiInterface["saveAssessmentEnhancementData"]
+      >[0];
+      // planner-sdk renamed the body field from enhancementData to enhancementDataRequest
       return await this.api.saveAssessmentEnhancementData(
-        { id, enhancementData },
+        {
+          id,
+          enhancementData,
+          enhancementDataRequest: enhancementData,
+        } as SaveEnhancementRequest,
         initOverrides,
       );
     } catch (err) {

@@ -1,9 +1,11 @@
 import type {
+  AssessmentSubsetInventory,
   AssessmentVCenterV2,
   InventoryData,
 } from "@openshift-migration-advisor/planner-sdk";
 
 import type { ReportInventorySource } from "./groupInventoryFilter";
+import { getSubsetInventoryLabel } from "./groupViewModel";
 
 /** Build report-scoped inventory from GET .../vcenters/{vid}. */
 export const vcenterV2ToReportSource = (
@@ -80,6 +82,7 @@ export const clusterIdsFromReportInventory = (
   return Object.keys(clusters);
 };
 
+/** Union of cluster ids within a single vCenter scope (dropdown options). */
 export const mergeClusterIds = (...idLists: string[][]): string[] => {
   const seen = new Set<string>();
   const merged: string[] = [];
@@ -92,6 +95,62 @@ export const mergeClusterIds = (...idLists: string[][]): string[] => {
     }
   }
   return merged;
+};
+
+/** Total clusters across RVTools subsets — same MOID on different vCenters counts separately. */
+export const countClustersAcrossSubsets = (
+  subsets: AssessmentSubsetInventory[],
+): number =>
+  subsets.reduce(
+    (total, subset) =>
+      total +
+      clusterIdsFromReportInventory(
+        subset.inventory as ReportInventorySource | undefined,
+      ).length,
+    0,
+  );
+
+export const sumClusterCountsFromVcenters = (
+  responses: AssessmentVCenterV2[],
+): number =>
+  responses.reduce(
+    (total, response) => total + clusterIdsFromVcenterV2(response).length,
+    0,
+  );
+
+export const aggregateClusterDisplayKey = (
+  clusterId: string,
+  subset: AssessmentSubsetInventory,
+  multiVcenter: boolean,
+): string =>
+  multiVcenter
+    ? `${clusterId} — ${getSubsetInventoryLabel(subset)}`
+    : clusterId;
+
+/**
+ * Build cluster map for All vCenters when aggregate snapshot clusters are empty.
+ * Uses unique display keys when the same cluster id appears on multiple vCenters.
+ */
+export const buildAggregateClustersFromSubsets = (
+  subsets: AssessmentSubsetInventory[],
+): Record<string, InventoryData> => {
+  const map: Record<string, InventoryData> = {};
+  const multiVcenter = subsets.length > 1;
+  for (const subset of subsets) {
+    const inventory = subset.inventory as ReportInventorySource | undefined;
+    for (const clusterId of clusterIdsFromReportInventory(inventory)) {
+      const payload = inventory?.clusters?.[clusterId];
+      if (!payload) {
+        continue;
+      }
+      let key = aggregateClusterDisplayKey(clusterId, subset, multiVcenter);
+      if (map[key]) {
+        key = `${clusterId} — ${subset.vcenterId ?? subset.id}`;
+      }
+      map[key] = payload;
+    }
+  }
+  return map;
 };
 
 const clusterInventoryHasPayload = (data: InventoryData): boolean =>

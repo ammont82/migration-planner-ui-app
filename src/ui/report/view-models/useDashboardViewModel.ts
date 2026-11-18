@@ -18,6 +18,8 @@ export interface UseDashboardViewModelParams {
   vcenterId?: string;
   clusters?: { [key: string]: InventoryData };
   isAggregateView: boolean;
+  /** When aggregate v1 snapshot omits vCenter ids (multi-RVTools). */
+  infrastructureVcenterCount?: number;
 }
 
 export interface DashboardViewModel {
@@ -32,17 +34,20 @@ export const useDashboardViewModel = ({
   vcenterId,
   clusters,
   isAggregateView,
+  infrastructureVcenterCount,
 }: UseDashboardViewModelParams): DashboardViewModel => {
-  const infrastructureSummary = useMemo(
-    () =>
-      buildInfrastructureSummary({
-        infra,
-        vcenterVersion,
-        vcenterId,
-        clusters,
-      }),
-    [infra, vcenterVersion, vcenterId, clusters],
-  );
+  const infrastructureSummary = useMemo(() => {
+    const summary = buildInfrastructureSummary({
+      infra,
+      vcenterVersion,
+      vcenterId,
+      clusters,
+    });
+    if (infrastructureVcenterCount != null) {
+      return { ...summary, vCenters: infrastructureVcenterCount };
+    }
+    return summary;
+  }, [clusters, infra, infrastructureVcenterCount, vcenterId, vcenterVersion]);
 
   const clusterDetailRows = useMemo(
     () => buildClusterDetailRows(clusters),

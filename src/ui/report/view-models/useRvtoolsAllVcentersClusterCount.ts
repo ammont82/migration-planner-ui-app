@@ -3,24 +3,13 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { IAssessmentsStore } from "../../../data/stores/interfaces/IAssessmentsStore";
 import {
-  clusterIdsFromReportInventory,
-  clusterIdsFromVcenterV2,
-  mergeClusterIds,
+  countClustersAcrossSubsets,
+  sumClusterCountsFromVcenters,
 } from "../helpers/assessmentV2Inventory";
-import type { ReportInventorySource } from "../helpers/groupInventoryFilter";
 import { resolveSubsetVcenterApiId } from "../helpers/resolveSubsetVcenterApiId";
 
 /** Cluster count embedded in subset snapshots (no v2 fetch). */
-export const countEmbeddedClustersAcrossSubsets = (
-  subsets: AssessmentSubsetInventory[],
-): number =>
-  mergeClusterIds(
-    ...subsets.map((subset) =>
-      clusterIdsFromReportInventory(
-        subset.inventory as ReportInventorySource | undefined,
-      ),
-    ),
-  ).length;
+export const countEmbeddedClustersAcrossSubsets = countClustersAcrossSubsets;
 
 /**
  * When the report is scoped to All vCenters, cluster inventory is not merged
@@ -78,10 +67,10 @@ export const useRvtoolsAllVcentersClusterCount = ({
         if (cancelled) {
           return;
         }
-        const clusterIds = mergeClusterIds(
-          ...responses.map((response) => clusterIdsFromVcenterV2(response)),
-        );
-        setResultByKey({ key: requestKey, count: clusterIds.length });
+        setResultByKey({
+          key: requestKey,
+          count: sumClusterCountsFromVcenters(responses),
+        });
       })
       .catch(() => {
         if (!cancelled) {

@@ -35,6 +35,7 @@ interface Props {
   clusterFound?: boolean;
   vcenterVersion?: string;
   vcenterId?: string;
+  infrastructureVcenterCount?: number;
 }
 
 export const Dashboard: React.FC<Props> = ({
@@ -47,6 +48,7 @@ export const Dashboard: React.FC<Props> = ({
   clusterFound = true,
   vcenterVersion,
   vcenterId,
+  infrastructureVcenterCount,
 }) => {
   const { infrastructureSummary, clusterDetailRows, selectedClusterDetails } =
     useDashboardViewModel({
@@ -55,6 +57,7 @@ export const Dashboard: React.FC<Props> = ({
       vcenterId,
       clusters,
       isAggregateView,
+      infrastructureVcenterCount,
     });
 
   // Transform osInfo to include both count and supported fields, fallback to os with supported=true if osInfo is undefined

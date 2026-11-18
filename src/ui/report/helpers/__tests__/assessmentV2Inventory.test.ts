@@ -1,4 +1,5 @@
 import type {
+  AssessmentSubsetInventory,
   AssessmentVCenterV2,
   Infra,
   InventoryData,
@@ -7,12 +8,15 @@ import type {
 import { describe, expect, it } from "vitest";
 
 import {
+  buildAggregateClustersFromSubsets,
   buildClustersMapForOptions,
   buildClustersMapWithEmbeddedFallback,
   clusterIdsFromReportInventory,
   clusterIdsFromVcenterV2,
+  countClustersAcrossSubsets,
   mergeClusterIds,
   resolveEmbeddedClusterInventory,
+  sumClusterCountsFromVcenters,
   vcenterV2ToReportSource,
 } from "../assessmentV2Inventory";
 import type { ReportInventorySource } from "../groupInventoryFilter";
@@ -86,6 +90,72 @@ describe("assessmentV2Inventory", () => {
 
     expect(map["cluster-a"]?.vms?.total).toBe(1);
     expect(map["cluster-b"]).toEqual({});
+  });
+
+  it("sums cluster counts across subsets with identical MOIDs", () => {
+    const subsets: AssessmentSubsetInventory[] = [
+      {
+        id: "s1",
+        name: "",
+        vcenterId: "vc-1",
+        vmsCount: 5,
+        createdAt: new Date(),
+        inventory: {
+          vcenterId: "vc-1",
+          vcenterVersion: "8.0.3.0",
+          clusters: {
+            "domain-c34": {
+              infra: { totalHosts: 7 } as Infra,
+              vms: { total: 5 } as VMs,
+            },
+          },
+        },
+      },
+      {
+        id: "s2",
+        name: "",
+        vcenterId: "vc-2",
+        vmsCount: 5,
+        createdAt: new Date(),
+        inventory: {
+          vcenterId: "vc-2",
+          vcenterVersion: "8.0.3.0",
+          clusters: {
+            "domain-c34": {
+              infra: { totalHosts: 7 } as Infra,
+              vms: { total: 5 } as VMs,
+            },
+          },
+        },
+      },
+    ];
+
+    expect(countClustersAcrossSubsets(subsets)).toBe(2);
+    const map = buildAggregateClustersFromSubsets(subsets);
+    expect(Object.keys(map)).toHaveLength(2);
+    expect(Object.values(map)[0]?.vms?.total).toBe(5);
+  });
+
+  it("sums cluster list lengths from multiple vCenter v2 responses", () => {
+    const responses: AssessmentVCenterV2[] = [
+      {
+        data: {
+          id: "vc-1",
+          vcenterVersion: "8.0",
+          data: { infra: {} as Infra, vms: { total: 1 } as VMs },
+        },
+        clusters: [{ id: "domain-c34" }],
+      },
+      {
+        data: {
+          id: "vc-2",
+          vcenterVersion: "8.0",
+          data: { infra: {} as Infra, vms: { total: 1 } as VMs },
+        },
+        clusters: [{ id: "domain-c34" }],
+      },
+    ];
+    expect(sumClusterCountsFromVcenters(responses)).toBe(2);
   });
 
   it("fills unloaded cluster slots from embedded snapshot inventory", () => {

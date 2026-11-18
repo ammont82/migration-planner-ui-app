@@ -32,13 +32,22 @@ const subset = (
 });
 
 describe("countEmbeddedClustersAcrossSubsets", () => {
-  it("deduplicates cluster ids across subsets", () => {
+  it("counts clusters per subset when ids collide across vCenters", () => {
     expect(
       countEmbeddedClustersAcrossSubsets([
         subset("s1", "vc-1", ["c1", "c2"]),
         subset("s2", "vc-2", ["c2", "c3"]),
       ]),
-    ).toBe(3);
+    ).toBe(4);
+  });
+
+  it("counts duplicate cluster ids on separate vCenters separately", () => {
+    expect(
+      countEmbeddedClustersAcrossSubsets([
+        subset("s1", "vc-1", ["domain-c34"]),
+        subset("s2", "vc-2", ["domain-c34"]),
+      ]),
+    ).toBe(2);
   });
 });
 
@@ -68,5 +77,27 @@ describe("useRvtoolsAllVcentersClusterCount", () => {
     });
     expect(getVcenter).toHaveBeenCalledWith("assessment-1", "vc-1");
     expect(getVcenter).toHaveBeenCalledWith("assessment-1", "vc-2");
+  });
+
+  it("counts each vCenter cluster when MOIDs match", async () => {
+    const getVcenter = vi.fn().mockImplementation((_id: string, vid: string) =>
+      Promise.resolve({
+        data: { id: vid, data: { infra: {}, vms: { total: 1 } } },
+        clusters: [{ id: "domain-c34" }],
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useRvtoolsAllVcentersClusterCount({
+        enabled: true,
+        assessmentId: "assessment-1",
+        subsets: [subset("s1", "vc-1"), subset("s2", "vc-2")],
+        assessmentsStore: { getVcenter } as never,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBe(2);
+    });
   });
 });

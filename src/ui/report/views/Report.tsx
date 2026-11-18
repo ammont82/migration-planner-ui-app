@@ -421,6 +421,7 @@ const ReportContent: React.FC = () => {
                     clusterFound={vm.scopedClusterView.clusterFound}
                     vcenterVersion={vm.vcenterVersion}
                     vcenterId={vm.vcenterId}
+                    infrastructureVcenterCount={vm.infrastructureVcenterCount}
                   />
                 ) : (
                   <Bullseye>
