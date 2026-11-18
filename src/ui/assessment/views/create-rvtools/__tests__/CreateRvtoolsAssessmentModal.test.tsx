@@ -15,6 +15,7 @@ import {
   RVTOOLS_APPEND_ALL_FAILED_MODAL_MESSAGE,
   RVTOOLS_APPEND_ALL_FAILED_MODAL_TITLE,
 } from "../../../helpers/rvtoolsUploadOutcome";
+import { MAX_RVTOOLS_FILES } from "../../../rvtools";
 import CreateRvtoolsAssessmentModal from "../CreateRvtoolsAssessmentModal";
 
 const makeFile = (name: string): File =>
@@ -42,7 +43,9 @@ const stageFiles = async (files: File[]): Promise<void> => {
   await user.upload(fileInput, files);
   await waitFor(() => {
     expect(
-      screen.getByText(`${files.length} of 10 files selected`),
+      screen.getByText(
+        `${files.length} of ${MAX_RVTOOLS_FILES} files selected`,
+      ),
     ).toBeInTheDocument();
   });
 };

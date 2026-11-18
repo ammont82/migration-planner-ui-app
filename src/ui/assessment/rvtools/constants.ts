@@ -1,4 +1,4 @@
-export const MAX_RVTOOLS_FILES = 10;
+export const MAX_RVTOOLS_FILES = 50;
 
 export const RVTOOLS_MAX_FILE_BYTES = 52_428_800; // 50 MiB
 
