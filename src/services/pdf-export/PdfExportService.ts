@@ -31,7 +31,7 @@ const TOC_ITEMS = [
   "- Clusters (Cluster distribution by data center)",
   "- Clusters (Cluster CPU over commitment)",
   "- Host distribution by model",
-  "- Networks (VM distribution by network)",
+  "- Networks (VMs by network (may overlap))",
   "- Networks (VM distribution by NIC count)",
   "- Migration warnings",
   "- Errors",

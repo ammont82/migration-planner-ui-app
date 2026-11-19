@@ -180,6 +180,7 @@ export const Dashboard: React.FC<Props> = ({
                 infra={infra}
                 nicCount={vms.nicCount}
                 distributionByNicCount={vms.distributionByNicCount}
+                uniqueVmCount={vms.total}
               />
             </GalleryItem>
           </Gallery>
@@ -193,6 +194,7 @@ export const Dashboard: React.FC<Props> = ({
                 infra={infra}
                 nicCount={vms.nicCount}
                 distributionByNicCount={vms.distributionByNicCount}
+                uniqueVmCount={vms.total}
               />
             </GalleryItem>
           </Gallery>
