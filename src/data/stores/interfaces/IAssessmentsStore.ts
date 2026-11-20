@@ -32,6 +32,8 @@ type AssessmentUpdateForm = {
 };
 
 export interface IAssessmentsStore extends ExternalStore<AssessmentModel[]> {
+  /** Whether an unfiltered assessment list has been loaded successfully. */
+  readonly hasLoaded: boolean;
   list(
     sourceId?: string,
     initOverrides?: RequestInit | InitOverrideFunction,

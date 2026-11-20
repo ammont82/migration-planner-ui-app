@@ -37,7 +37,9 @@ export const useAssessmentsScreenViewModel = (): AssessmentsScreenViewModel => {
     [allAssessments],
   );
 
-  const [hasInitialLoad, setHasInitialLoad] = useState(false);
+  const [hasInitialLoad, setHasInitialLoad] = useState(
+    assessmentsStore.hasLoaded,
+  );
 
   const [fetchState, fetchAssessments] = useAsyncFn(
     async () => {
@@ -48,11 +50,13 @@ export const useAssessmentsScreenViewModel = (): AssessmentsScreenViewModel => {
       }
     },
     [assessmentsStore],
-    { loading: true },
+    { loading: !assessmentsStore.hasLoaded },
   );
 
   useMount(() => {
-    void fetchAssessments();
+    if (!assessmentsStore.hasLoaded) {
+      void fetchAssessments();
+    }
     assessmentsStore.startPolling(DEFAULT_POLLING_DELAY);
   });
 

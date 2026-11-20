@@ -22,7 +22,6 @@ import React, { useEffect } from "react";
 
 import { routes } from "../../../routing/Routes";
 import { AppPage } from "../../core/components/AppPage";
-import { HOME_TAB_LABELS } from "../../home/constants";
 import { safeExternalUrl } from "../../core/utils/urlValidation";
 import { EnvironmentPageProvider } from "../../environment/view-models/EnvironmentPageContext";
 import {
@@ -30,6 +29,7 @@ import {
   EnvironmentModal,
 } from "../../environment/views/environment-modals";
 import { SourcesTable } from "../../environment/views/SourcesTable";
+import { HOME_TAB_LABELS } from "../../home/constants";
 import { useCreateFromOvaViewModel } from "../view-models/useCreateFromOvaViewModel";
 import { MigrationAssessmentStepsModal } from "./MigrationAssessmentStepsModal";
 

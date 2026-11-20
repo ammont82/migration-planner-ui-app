@@ -1,9 +1,10 @@
 import { InvalidObject } from "@redhat-cloud-services/frontend-components/InvalidObject";
 import { lazy } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import { AssessmentsScreen } from "../ui/assessment/views/AssessmentsScreen";
 import { EnvironmentsScreen } from "../ui/environment/views/EnvironmentsScreen";
+import { HomeLandingRedirect } from "../ui/home/views/HomeLandingRedirect";
 import { HomeScreen } from "../ui/home/views/HomeScreen";
 import { GroupsScreen } from "../ui/partner/admin/views/GroupsScreen";
 import { MyPartnerScreen } from "../ui/partner/customer/views/MyPartnerScreen";
@@ -14,7 +15,6 @@ import ClusterSizingToolScreen from "../ui/tools/ClusterSizingTool/views/Cluster
 import StandaloneCostEstimationScreen from "../ui/tools/StandaloneCostEstimation/views/StandaloneCostEstimationScreen";
 import { ToolsScreen } from "../ui/tools/views/ToolsScreen";
 import { IdentityWrapper } from "./IdentityWrapper";
-import { routes } from "./Routes";
 
 const ReportPage = lazy(
   () =>
@@ -67,7 +67,7 @@ export const AppRoutes: React.FC = () => (
   <Routes>
     {/* Identity wrapper loads current identity and renders child routes */}
     <Route element={<IdentityWrapper />}>
-      <Route index element={<Navigate to={routes.assessments} replace />} />
+      <Route index element={<HomeLandingRedirect />} />
 
       {/* Pathless layout route — HomeScreen renders the shell + <Outlet /> */}
       <Route element={<HomeScreen />} errorElement={<InvalidObject />}>

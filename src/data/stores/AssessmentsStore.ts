@@ -62,10 +62,15 @@ export class AssessmentsStore
   private assessments: AssessmentModel[] = [];
   private api: AssessmentApiInterface;
   private deletedAssessmentIds = new Set<string>();
+  private hasLoadedAssessments = false;
 
   constructor(api: AssessmentApiInterface) {
     super();
     this.api = api;
+  }
+
+  get hasLoaded(): boolean {
+    return this.hasLoadedAssessments;
   }
 
   async list(
@@ -116,6 +121,10 @@ export class AssessmentsStore
         existing,
       );
     });
+
+    if (!sourceId) {
+      this.hasLoadedAssessments = true;
+    }
 
     this.notify();
     return this.assessments;

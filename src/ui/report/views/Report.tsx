@@ -32,8 +32,8 @@ import { themeTooltipFlyoutProps } from "../../../lib/patternfly/flyoutAppendTo"
 import { routes } from "../../../routing/Routes";
 import CreateRvtoolsAssessmentModal from "../../assessment/views/create-rvtools/CreateRvtoolsAssessmentModal";
 import { AppPage } from "../../core/components/AppPage";
-import { HOME_TAB_LABELS } from "../../home/constants";
 import CreateAssessmentDropdown from "../../core/components/CreateAssessmentDropdown";
+import { HOME_TAB_LABELS } from "../../home/constants";
 import { fromGroupOptionId } from "../helpers/groupViewModel";
 import { useReportPageViewModel } from "../view-models/useReportPageViewModel";
 import { Dashboard } from "./assessment-report/Dashboard";

@@ -42,6 +42,7 @@ vi.mock("react-use", async () => {
 });
 
 let mockAssessmentsStore: {
+  hasLoaded: boolean;
   list: ReturnType<typeof vi.fn>;
   startPolling: ReturnType<typeof vi.fn>;
   stopPolling: ReturnType<typeof vi.fn>;
@@ -88,6 +89,7 @@ describe("useAssessmentsScreenViewModel", () => {
     assessmentsListeners = new Set();
 
     mockAssessmentsStore = {
+      hasLoaded: false,
       list: vi.fn().mockResolvedValue([]),
       startPolling: vi.fn(),
       stopPolling: vi.fn(),
