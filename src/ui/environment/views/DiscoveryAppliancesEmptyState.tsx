@@ -50,7 +50,7 @@ export const DiscoveryAppliancesEmptyState: React.FC<
             icon={<ExternalLinkAltIcon />}
             iconPosition="end"
           >
-            Learn more about RVTools requirements
+            Learn more about the Discovery Agent flow
           </Button>
           <Button
             variant="link"
