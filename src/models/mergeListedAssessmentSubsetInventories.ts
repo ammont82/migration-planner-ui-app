@@ -1,12 +1,66 @@
-import type { Assessment } from "@openshift-migration-advisor/planner-sdk";
+import type {
+  Assessment,
+  Snapshot,
+} from "@openshift-migration-advisor/planner-sdk";
 
 import { type AssessmentModel, createAssessmentModel } from "./AssessmentModel";
+import { getInventoryCollectionTime } from "./assessmentTimestamps";
 import { sortSnapshotsDesc } from "./SnapshotParser";
 
+const snapshotHasCollectionMetadata = (
+  snapshot: Snapshot | undefined,
+): boolean => {
+  if (!snapshot) {
+    return false;
+  }
+  if (snapshot.inventory?.collectionTime != null) {
+    return true;
+  }
+  const subsets = snapshot.subsetInventories;
+  if (!Array.isArray(subsets)) {
+    return false;
+  }
+  return subsets.some((subset) => subset.inventory?.collectionTime != null);
+};
+
+const mergeSnapshotDetailFromExisting = (
+  incoming: Snapshot,
+  existing: Snapshot,
+): Snapshot => {
+  let merged: Snapshot = incoming;
+
+  const incomingInventory = incoming.inventory;
+  const existingCollectionTime = getInventoryCollectionTime(existing.inventory);
+  const incomingCollectionTime = getInventoryCollectionTime(incomingInventory);
+  if (incomingInventory && existingCollectionTime && !incomingCollectionTime) {
+    merged = {
+      ...merged,
+      inventory: {
+        ...incomingInventory,
+        collectionTime: existingCollectionTime,
+      },
+    };
+  }
+
+  const shouldCopySubsets =
+    !Object.prototype.hasOwnProperty.call(incoming, "subsetInventories") &&
+    existing.subsetInventories != null;
+
+  if (shouldCopySubsets) {
+    merged = {
+      ...merged,
+      subsetInventories: existing.subsetInventories,
+    };
+  }
+
+  return merged;
+};
+
 /**
- * LIST responses often omit `subsetInventories` on snapshots while GET includes
- * them. When background polling refreshes the list, preserve subset data that
- * was already fetched by ID so group filter options stay complete on SaaS.
+ * LIST responses often omit `subsetInventories` and `collection_time` on
+ * snapshots while GET includes them. List stubs also use `assessment.createdAt`
+ * for `snapshot.createdAt`, which can differ from GET. When background polling
+ * refreshes the list, preserve detail already fetched by ID.
  */
 export const mergeListedAssessmentPreservingSubsetInventories = (
   incoming: AssessmentModel,
@@ -18,9 +72,7 @@ export const mergeListedAssessmentPreservingSubsetInventories = (
   }
 
   const latestIncoming = sortSnapshotsDesc(incomingSnapshots)[0];
-  if (
-    Object.prototype.hasOwnProperty.call(latestIncoming, "subsetInventories")
-  ) {
+  if (snapshotHasCollectionMetadata(latestIncoming)) {
     return incoming;
   }
 
@@ -30,21 +82,23 @@ export const mergeListedAssessmentPreservingSubsetInventories = (
   }
 
   const latestExisting = existingSorted[0];
-  if (
-    !Object.prototype.hasOwnProperty.call(latestExisting, "subsetInventories")
-  ) {
+  const canMergeFromExisting =
+    snapshotHasCollectionMetadata(latestExisting) ||
+    (Array.isArray(latestExisting.subsetInventories) &&
+      latestExisting.subsetInventories.length > 0);
+
+  if (!canMergeFromExisting) {
     return incoming;
   }
 
   const latestIncomingTime = new Date(latestIncoming.createdAt).getTime();
   const mergedSnapshots = incomingSnapshots.map((snapshot) => {
-    if (new Date(snapshot.createdAt).getTime() !== latestIncomingTime) {
+    const isLatestIncoming =
+      new Date(snapshot.createdAt).getTime() === latestIncomingTime;
+    if (!isLatestIncoming) {
       return snapshot;
     }
-    return {
-      ...snapshot,
-      subsetInventories: latestExisting.subsetInventories,
-    };
+    return mergeSnapshotDetailFromExisting(snapshot, latestExisting);
   });
 
   return createAssessmentModel({

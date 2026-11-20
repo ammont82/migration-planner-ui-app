@@ -24,7 +24,12 @@ import type { ISourcesStore } from "../../../data/stores/interfaces/ISourcesStor
 import type { RvtoolsUploadState } from "../../../data/stores/JobsStore";
 import type { RvtoolsPendingUploadBatch } from "../../../data/stores/rvtoolsLocalPersistence";
 import { useIsPartner } from "../../../hooks/useIdentity";
+import { formatAssessmentDateTime } from "../../../lib/common/Time";
 import type { AssessmentModel } from "../../../models/AssessmentModel";
+import {
+  getAssessmentDataCollectedMs,
+  getAssessmentImportedMs,
+} from "../../../models/assessmentTimestamps";
 import type { SourceModel } from "../../../models/SourceModel";
 import { routes } from "../../../routing/Routes";
 import type { SnapshotLike } from "../../../services/html-export/types";
@@ -286,7 +291,8 @@ export interface ReportPageViewModel {
   vms: VMs | undefined;
   clusters: { [key: string]: InventoryData } | undefined;
   latestSnapshot: SnapshotLike;
-  lastUpdatedText: string;
+  dataCollectedText: string;
+  importedToConsoleText: string;
   clusterCount: number;
   reportSummaryVms: VMs | undefined;
   vcenterId: string | undefined;
@@ -809,11 +815,21 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
     scopedRvtoolsSubsetInventory?.clusters,
   ]);
 
-  // ---- Last updated text ---------------------------------------------------
-  const lastUpdatedText = useMemo((): string => {
-    // Delegate to the domain model's pre-computed latestSnapshot
-    const model = assessment;
-    return model?.latestSnapshot?.lastUpdated || "-";
+  // ---- Assessment timestamp captions ---------------------------------------
+  const dataCollectedText = useMemo((): string => {
+    if (!assessment) {
+      return "-";
+    }
+    const ms = getAssessmentDataCollectedMs(assessment);
+    return ms !== undefined ? formatAssessmentDateTime(ms) : "-";
+  }, [assessment]);
+
+  const importedToConsoleText = useMemo((): string => {
+    if (!assessment) {
+      return "-";
+    }
+    const ms = getAssessmentImportedMs(assessment);
+    return ms !== undefined ? formatAssessmentDateTime(ms) : "-";
   }, [assessment]);
 
   // ---- Missing metrics detection -------------------------------------------
@@ -928,7 +944,8 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
     vms,
     clusters,
     latestSnapshot,
-    lastUpdatedText,
+    dataCollectedText,
+    importedToConsoleText,
     clusterCount: reportSummaryClusterCount,
     reportSummaryVms,
     vcenterId,

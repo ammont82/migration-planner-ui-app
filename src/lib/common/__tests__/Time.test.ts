@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   AVERAGE_DAYS_PER_MONTH,
   AVERAGE_DAYS_PER_YEAR,
+  formatAssessmentDateTime,
   formatRelativeTime,
   humanizeDate,
   sleep,
@@ -282,6 +283,23 @@ describe("humanizeDate", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Tests — formatAssessmentDateTime
+// ---------------------------------------------------------------------------
+
+describe("formatAssessmentDateTime", () => {
+  it("returns '-' for missing or invalid values", () => {
+    expect(formatAssessmentDateTime()).toBe("-");
+    expect(formatAssessmentDateTime("not-a-date")).toBe("-");
+  });
+
+  it("formats a valid date", () => {
+    const formatted = formatAssessmentDateTime("2026-06-18T08:20:00.000Z");
+    expect(formatted).toContain("2026");
+    expect(formatted).toContain("June");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Tests — formatRelativeTime
 // ---------------------------------------------------------------------------
 
@@ -322,5 +340,15 @@ describe("formatRelativeTime", () => {
 
     const oneDayAgoMs = now.getTime() - 24 * 60 * 60 * 1000;
     expect(formatRelativeTime(oneDayAgoMs)).toBe("yesterday");
+  });
+
+  it("uses absolute local time when the timestamp appears in the future", () => {
+    const now = new Date("2026-04-01T12:00:00.000Z");
+    vi.setSystemTime(now);
+
+    const fiftyEightMinutesAhead = new Date(now.getTime() + 58 * 60 * 1000);
+    expect(formatRelativeTime(fiftyEightMinutesAhead)).toBe(
+      formatAssessmentDateTime(fiftyEightMinutesAhead),
+    );
   });
 });
