@@ -32,8 +32,8 @@ import { themeTooltipFlyoutProps } from "../../../lib/patternfly/flyoutAppendTo"
 import { routes } from "../../../routing/Routes";
 import CreateRvtoolsAssessmentModal from "../../assessment/views/create-rvtools/CreateRvtoolsAssessmentModal";
 import { AppPage } from "../../core/components/AppPage";
-import { HOME_TAB_LABELS } from "../../home/constants";
 import CreateAssessmentDropdown from "../../core/components/CreateAssessmentDropdown";
+import { HOME_TAB_LABELS } from "../../home/constants";
 import { fromGroupOptionId } from "../helpers/groupViewModel";
 import { useReportPageViewModel } from "../view-models/useReportPageViewModel";
 import { Dashboard } from "./assessment-report/Dashboard";
@@ -189,9 +189,14 @@ const ReportContent: React.FC = () => {
               </p>
             </StackItem>
             <StackItem>
-              {vm.lastUpdatedText !== "-"
-                ? `Last updated: ${vm.lastUpdatedText}`
-                : "[Last updated time stamp]"}
+              <p>
+                <strong>Data collected on:</strong> {vm.dataCollectedText}
+              </p>
+            </StackItem>
+            <StackItem>
+              <p>
+                <strong>Imported to console:</strong> {vm.importedToConsoleText}
+              </p>
             </StackItem>
             <StackItem>
               {vm.inventoryScopeSummary ? (

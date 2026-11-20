@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   AVERAGE_DAYS_PER_MONTH,
   AVERAGE_DAYS_PER_YEAR,
+  formatAssessmentDateTime,
   formatRelativeTime,
   humanizeDate,
   sleep,
@@ -278,6 +279,23 @@ describe("humanizeDate", () => {
 
       expect(humanizeDate(now)).toBe("just now");
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests — formatAssessmentDateTime
+// ---------------------------------------------------------------------------
+
+describe("formatAssessmentDateTime", () => {
+  it("returns '-' for missing or invalid values", () => {
+    expect(formatAssessmentDateTime()).toBe("-");
+    expect(formatAssessmentDateTime("not-a-date")).toBe("-");
+  });
+
+  it("formats a valid date", () => {
+    const formatted = formatAssessmentDateTime("2026-06-18T08:20:00.000Z");
+    expect(formatted).toContain("2026");
+    expect(formatted).toContain("June");
   });
 });
 

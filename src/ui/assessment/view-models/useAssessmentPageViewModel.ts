@@ -166,7 +166,7 @@ export const useAssessmentPageViewModel = (): AssessmentPageViewModel => {
 
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
 
-  const userSelectedColumnsVersion = 4;
+  const userSelectedColumnsVersion = 5;
   const [userSelectedColumns, setUserSelectedColumns] = useLocalStorage<
     ColumnKey[]
   >(VISIBLE_COLUMNS_KEY, DEFAULT_VISIBLE_COLUMNS, userSelectedColumnsVersion);

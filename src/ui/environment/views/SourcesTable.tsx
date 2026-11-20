@@ -13,7 +13,6 @@ import {
   Toolbar,
   ToolbarContent,
   ToolbarItem,
-  Tooltip,
 } from "@patternfly/react-core";
 import {
   RhUiArrowLeftIcon,
@@ -33,10 +32,12 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import useLocalStorage from "../../../hooks/useLocalStorage";
-import { formatRelativeTime } from "../../../lib/common/Time";
-import { themeTooltipFlyoutProps } from "../../../lib/patternfly/flyoutAppendTo";
 import type { AssessmentModel } from "../../../models/AssessmentModel";
 import type { SourceModel } from "../../../models/SourceModel";
+import {
+  getSourceDataCollectedMs,
+  getSourceImportedMs,
+} from "../../../models/sourceTimestamps";
 import { routes } from "../../../routing/Routes";
 import {
   AttributeValueFilter,
@@ -45,6 +46,11 @@ import {
 } from "../../core/components/attribute-value-filter";
 import { ConfirmationModal } from "../../core/components/ConfirmationModal";
 import { OVASetUpInstructionsModal } from "../../core/components/OVASetUpInstructionsModal";
+import {
+  TIMESTAMP_COLUMN_HELP,
+  TimestampColumnTitle,
+  TimestampTableCell,
+} from "../../core/components/TimestampTableCell";
 import {
   DISCOVERY_VM_STATUS_FILTER_OPTIONS,
   type DiscoveryVmStatusFilterKey,
@@ -73,7 +79,7 @@ import { getAgentVersionDisplayLabel, VersionStatus } from "./VersionStatus";
 
 const VISIBLE_COLUMNS_STORAGE_KEY =
   "migration-advisor:discovery-appliances-visible-columns";
-const VISIBLE_COLUMNS_STORAGE_VERSION = 1;
+const VISIBLE_COLUMNS_STORAGE_VERSION = 2;
 
 const VALUE_NOT_AVAILABLE = "-";
 
@@ -88,12 +94,6 @@ const getNetworksCount = (source: SourceModel): number =>
 
 const getDatastoresCount = (source: SourceModel): number =>
   source.inventory?.vcenter?.infra.datastores?.length ?? 0;
-
-const getUpdatedAtMs = (source: SourceModel): number => {
-  if (!source.updatedAt) return 0;
-  const ms = new Date(source.updatedAt).getTime();
-  return Number.isNaN(ms) ? 0 : ms;
-};
 
 const getSourceAgentVersionLabel = (source: SourceModel): string =>
   getAgentVersionDisplayLabel({
@@ -325,10 +325,17 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
             : bDatastores - aDatastores;
         });
         break;
-      case "LastSeen":
+      case "DataCollectedOn":
         copy.sort((a, b) => {
-          const aMs = getUpdatedAtMs(a);
-          const bMs = getUpdatedAtMs(b);
+          const aMs = getSourceDataCollectedMs(a) ?? 0;
+          const bMs = getSourceDataCollectedMs(b) ?? 0;
+          return sortBy.direction === "asc" ? aMs - bMs : bMs - aMs;
+        });
+        break;
+      case "ImportedToConsole":
+        copy.sort((a, b) => {
+          const aMs = getSourceImportedMs(a) ?? 0;
+          const bMs = getSourceImportedMs(b) ?? 0;
           return sortBy.direction === "asc" ? aMs - bMs : bMs - aMs;
         });
         break;
@@ -638,13 +645,28 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                   {Columns.Datastores}
                 </Th>
               )}
-              {isColumnVisible("LastSeen") && (
+              {isColumnVisible("DataCollectedOn") && (
                 <Th
                   className={tableHeaderNormal}
-                  sort={getSortParams("LastSeen")}
+                  sort={getSortParams("DataCollectedOn")}
                   modifier="nowrap"
                 >
-                  {Columns.LastSeen}
+                  <TimestampColumnTitle
+                    label={Columns.DataCollectedOn}
+                    helpText={TIMESTAMP_COLUMN_HELP.dataCollected}
+                  />
+                </Th>
+              )}
+              {isColumnVisible("ImportedToConsole") && (
+                <Th
+                  className={tableHeaderNormal}
+                  sort={getSortParams("ImportedToConsole")}
+                  modifier="nowrap"
+                >
+                  <TimestampColumnTitle
+                    label={Columns.ImportedToConsole}
+                    helpText={TIMESTAMP_COLUMN_HELP.importedDiscoveryAppliance}
+                  />
                 </Th>
               )}
               {isColumnVisible("Actions") && (
@@ -755,18 +777,32 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                         VALUE_NOT_AVAILABLE}
                     </Td>
                   )}
-                  {isColumnVisible("LastSeen") && (
-                    <Td dataLabel={Columns.LastSeen} className={tableCellTop}>
-                      {source?.updatedAt ? (
-                        <Tooltip
-                          {...themeTooltipFlyoutProps}
-                          content={new Date(source.updatedAt).toLocaleString()}
-                        >
-                          <span>{formatRelativeTime(source.updatedAt)}</span>
-                        </Tooltip>
-                      ) : (
-                        "-"
-                      )}
+                  {isColumnVisible("DataCollectedOn") && (
+                    <Td
+                      dataLabel={Columns.DataCollectedOn}
+                      className={tableCellTop}
+                      modifier="nowrap"
+                    >
+                      <TimestampTableCell
+                        columnLabel={Columns.DataCollectedOn}
+                        ms={getSourceDataCollectedMs(source)}
+                        helpText={TIMESTAMP_COLUMN_HELP.dataCollected}
+                      />
+                    </Td>
+                  )}
+                  {isColumnVisible("ImportedToConsole") && (
+                    <Td
+                      dataLabel={Columns.ImportedToConsole}
+                      className={tableCellTop}
+                      modifier="nowrap"
+                    >
+                      <TimestampTableCell
+                        columnLabel={Columns.ImportedToConsole}
+                        ms={getSourceImportedMs(source)}
+                        helpText={
+                          TIMESTAMP_COLUMN_HELP.importedDiscoveryAppliance
+                        }
+                      />
                     </Td>
                   )}
                   {isColumnVisible("Actions") && (

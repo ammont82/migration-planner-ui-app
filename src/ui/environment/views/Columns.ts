@@ -9,7 +9,8 @@ export const Columns = {
   Networks: "Networks",
   Datastores: "Datastores",
   Actions: "Actions",
-  LastSeen: "Last updated",
+  DataCollectedOn: "Data collected on",
+  ImportedToConsole: "Imported to console",
 } as const;
 
 export type ColumnKey = keyof typeof Columns;
@@ -33,7 +34,8 @@ export const SORTABLE_COLUMNS: SortableColumnKey[] = [
   "VMs",
   "Networks",
   "Datastores",
-  "LastSeen",
+  "DataCollectedOn",
+  "ImportedToConsole",
 ];
 
 /** Columns shown on first visit (matches the default Discovery Appliances table). */
@@ -42,7 +44,8 @@ export const DEFAULT_VISIBLE_COLUMNS: ManageableColumnKey[] = [
   "Status",
   "VersionStatus",
   "VMs",
-  "LastSeen",
+  "DataCollectedOn",
+  "ImportedToConsole",
   "Actions",
 ];
 
@@ -106,8 +109,13 @@ export const COLUMN_MANAGEMENT_METADATA: Record<
     isShownByDefault: true,
     isUntoggleable: true,
   },
-  LastSeen: {
-    title: Columns.LastSeen,
+  DataCollectedOn: {
+    title: Columns.DataCollectedOn,
+    isShownByDefault: true,
+    isUntoggleable: false,
+  },
+  ImportedToConsole: {
+    title: Columns.ImportedToConsole,
     isShownByDefault: true,
     isUntoggleable: false,
   },

@@ -27,10 +27,14 @@ import {
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { formatRelativeTime } from "../../../lib/common/Time";
 import { themeTooltipFlyoutProps } from "../../../lib/patternfly/flyoutAppendTo";
 import type { AssessmentModel } from "../../../models/AssessmentModel";
 import { routes } from "../../../routing/Routes";
+import {
+  TIMESTAMP_COLUMN_HELP,
+  TimestampColumnTitle,
+  TimestampTableCell,
+} from "../../core/components/TimestampTableCell";
 import { isUploadedFileSourceType } from "../helpers/assessmentSource";
 
 const openAssistedInstaller = (): void => {
@@ -51,13 +55,14 @@ const openAssistedInstaller = (): void => {
 export const Columns = {
   Name: "Name",
   Source: "Source",
-  LastUpdated: "Last updated",
   Owner: "Owner",
   Hosts: "Hosts",
   VMs: "VMs",
   Networks: "Networks",
   Datastores: "Datastores",
   SharingStatus: "Sharing status",
+  DataCollectedOn: "Data collected on",
+  ImportedToConsole: "Imported to console",
   Actions: "",
 } as const;
 
@@ -80,11 +85,6 @@ export const COLUMN_MANAGEMENT_METADATA: Record<
   },
   Source: {
     title: Columns.Source,
-    isShownByDefault: true,
-    isUntoggleable: false,
-  },
-  LastUpdated: {
-    title: Columns.LastUpdated,
     isShownByDefault: true,
     isUntoggleable: false,
   },
@@ -118,6 +118,16 @@ export const COLUMN_MANAGEMENT_METADATA: Record<
     isShownByDefault: true,
     isUntoggleable: false,
   },
+  DataCollectedOn: {
+    title: Columns.DataCollectedOn,
+    isShownByDefault: true,
+    isUntoggleable: false,
+  },
+  ImportedToConsole: {
+    title: Columns.ImportedToConsole,
+    isShownByDefault: true,
+    isUntoggleable: false,
+  },
   Actions: {
     title: Columns.Actions,
     isShownByDefault: true,
@@ -129,12 +139,13 @@ export type SortableColumn = Exclude<ColumnKey, "SharingStatus" | "Actions">;
 export const SORTABLE_COLUMNS: SortableColumn[] = [
   "Name",
   "Source",
-  "LastUpdated",
   "Owner",
   "Hosts",
   "VMs",
   "Networks",
   "Datastores",
+  "DataCollectedOn",
+  "ImportedToConsole",
 ];
 
 export type AssessmentTableRow = {
@@ -143,7 +154,8 @@ export type AssessmentTableRow = {
   name: string;
   source: string;
   sourceType: string;
-  lastUpdatedMs: number;
+  dataCollectedMs?: number;
+  importedMs?: number;
   owner: string;
   hosts: string | number;
   vms: string | number;
@@ -233,11 +245,6 @@ export const AssessmentsTable: React.FC<AssessmentsTableProps> = ({
               {Columns.Source}
             </Th>
           )}
-          {isColumnVisible("LastUpdated") && (
-            <Th sort={getSortParams("LastUpdated")} modifier="nowrap">
-              {Columns.LastUpdated}
-            </Th>
-          )}
           {isColumnVisible("Owner") && (
             <Th sort={getSortParams("Owner")} modifier="nowrap">
               {Columns.Owner}
@@ -265,6 +272,22 @@ export const AssessmentsTable: React.FC<AssessmentsTableProps> = ({
           )}
           {isColumnVisible("SharingStatus") && (
             <Th modifier="nowrap">{Columns.SharingStatus}</Th>
+          )}
+          {isColumnVisible("DataCollectedOn") && (
+            <Th sort={getSortParams("DataCollectedOn")} modifier="nowrap">
+              <TimestampColumnTitle
+                label={Columns.DataCollectedOn}
+                helpText={TIMESTAMP_COLUMN_HELP.dataCollected}
+              />
+            </Th>
+          )}
+          {isColumnVisible("ImportedToConsole") && (
+            <Th sort={getSortParams("ImportedToConsole")} modifier="nowrap">
+              <TimestampColumnTitle
+                label={Columns.ImportedToConsole}
+                helpText={TIMESTAMP_COLUMN_HELP.importedAssessment}
+              />
+            </Th>
           )}
           {isColumnVisible("Actions") && (
             <Th modifier="fitContent" screenReaderText="Actions">
@@ -333,22 +356,6 @@ export const AssessmentsTable: React.FC<AssessmentsTableProps> = ({
                 </div>
               </Td>
             )}
-            {isColumnVisible("LastUpdated") && (
-              <Td dataLabel={Columns.LastUpdated}>
-                {assessment.lastUpdatedMs ? (
-                  <Tooltip
-                    {...themeTooltipFlyoutProps}
-                    content={new Date(
-                      assessment.lastUpdatedMs,
-                    ).toLocaleString()}
-                  >
-                    <span>{formatRelativeTime(assessment.lastUpdatedMs)}</span>
-                  </Tooltip>
-                ) : (
-                  "-"
-                )}
-              </Td>
-            )}
             {isColumnVisible("Owner") && (
               <Td dataLabel={Columns.Owner}>
                 <Truncate content={assessment.owner} />
@@ -375,6 +382,24 @@ export const AssessmentsTable: React.FC<AssessmentsTableProps> = ({
                       : "Shared by customer"
                     : "Shared with partner"
                   : "Not shared"}
+              </Td>
+            )}
+            {isColumnVisible("DataCollectedOn") && (
+              <Td dataLabel={Columns.DataCollectedOn} modifier="nowrap">
+                <TimestampTableCell
+                  columnLabel={Columns.DataCollectedOn}
+                  ms={assessment.dataCollectedMs}
+                  helpText={TIMESTAMP_COLUMN_HELP.dataCollected}
+                />
+              </Td>
+            )}
+            {isColumnVisible("ImportedToConsole") && (
+              <Td dataLabel={Columns.ImportedToConsole} modifier="nowrap">
+                <TimestampTableCell
+                  columnLabel={Columns.ImportedToConsole}
+                  ms={assessment.importedMs}
+                  helpText={TIMESTAMP_COLUMN_HELP.importedAssessment}
+                />
               </Td>
             )}
             {isColumnVisible("Actions") && (

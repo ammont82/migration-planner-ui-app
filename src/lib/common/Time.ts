@@ -45,6 +45,27 @@ export function humanizeDate(when: Date): string {
   return "just now";
 }
 
+/** Long-form timestamp for assessment tables and report headers. */
+export function formatAssessmentDateTime(
+  when?: string | number | Date,
+): string {
+  if (when == null || when === "") {
+    return "-";
+  }
+  const date = new Date(when);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+  return new Intl.DateTimeFormat(undefined, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(date);
+}
+
 export function formatRelativeTime(updatedAt?: string | number | Date): string {
   if (!updatedAt) return "-";
   const date = new Date(updatedAt);

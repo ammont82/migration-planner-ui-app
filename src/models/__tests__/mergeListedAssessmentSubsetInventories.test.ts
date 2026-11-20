@@ -41,6 +41,47 @@ describe("mergeListedAssessmentPreservingSubsetInventories", () => {
     expect(merged.snapshotsSorted[0].subsetInventories).toBeNull();
   });
 
+  it("copies subsetInventories when list snapshot createdAt differs from GET", () => {
+    const collectedAt = new Date("2026-05-20T13:51:00.000Z");
+    const importedAt = new Date("2026-11-18T14:24:00.000Z");
+    const subsetInventoriesWithCollection = [
+      {
+        id: "group-1",
+        name: "VC1",
+        vcenterId: "vc-1",
+        vmsCount: 10,
+        createdAt: importedAt,
+        inventory: {
+          ...inventory,
+          collectionTime: collectedAt,
+        },
+      },
+    ];
+    const existing = createAssessmentModel({
+      ...assessmentBase,
+      snapshots: [
+        {
+          createdAt: importedAt,
+          inventory,
+          subsetInventories: subsetInventoriesWithCollection,
+        },
+      ],
+    } as unknown as Assessment);
+    const incoming = createAssessmentModel({
+      ...assessmentBase,
+      snapshots: [{ createdAt: importedAt, inventory }],
+    } as unknown as Assessment);
+
+    const merged = mergeListedAssessmentPreservingSubsetInventories(
+      incoming,
+      existing,
+    );
+
+    expect(merged.snapshotsSorted[0].subsetInventories).toEqual(
+      subsetInventoriesWithCollection,
+    );
+  });
+
   it("copies subsetInventories from existing when list omits the field", () => {
     const existing = createAssessmentModel({
       ...assessmentBase,
@@ -61,5 +102,51 @@ describe("mergeListedAssessmentPreservingSubsetInventories", () => {
       subsetInventories,
     );
     expect(merged.name).toBe("A listed");
+  });
+
+  it("merges subsetInventories when list uses assessment createdAt for snapshot", () => {
+    const listCreatedAt = new Date("2026-11-18T14:24:00.000Z");
+    const detailSnapshotAt = new Date("2026-11-18T14:25:10.000Z");
+    const collectedAt = new Date("2026-05-20T13:51:00.000Z");
+    const subsetInventoriesWithCollection = [
+      {
+        id: "group-1",
+        name: "VC1",
+        vcenterId: "vc-1",
+        vmsCount: 10,
+        createdAt: detailSnapshotAt,
+        inventory: {
+          ...inventory,
+          collectionTime: collectedAt,
+        },
+      },
+    ];
+    const existing = createAssessmentModel({
+      ...assessmentBase,
+      createdAt: listCreatedAt,
+      snapshots: [
+        {
+          createdAt: detailSnapshotAt,
+          inventory,
+          subsetInventories: subsetInventoriesWithCollection,
+        },
+      ],
+    } as unknown as Assessment);
+    const incoming = createAssessmentModel({
+      ...assessmentBase,
+      createdAt: listCreatedAt,
+      name: "Listed name",
+      snapshots: [{ createdAt: listCreatedAt, inventory }],
+    } as unknown as Assessment);
+
+    const merged = mergeListedAssessmentPreservingSubsetInventories(
+      incoming,
+      existing,
+    );
+
+    expect(merged.snapshotsSorted[0].subsetInventories).toEqual(
+      subsetInventoriesWithCollection,
+    );
+    expect(merged.name).toBe("Listed name");
   });
 });

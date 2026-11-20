@@ -614,7 +614,7 @@ describe("AssessmentsStore", () => {
         store.saveEnhancementData("a-1", enhancement),
       ).resolves.toEqual(enhancement);
       expect(api.saveAssessmentEnhancementData).toHaveBeenCalledWith(
-        { id: "a-1", enhancementData: enhancement },
+        { id: "a-1", enhancementDataRequest: enhancement },
         undefined,
       );
     });
