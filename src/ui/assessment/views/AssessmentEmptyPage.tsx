@@ -10,6 +10,8 @@ import React from "react";
 
 import { routes } from "../../../routing/Routes";
 import { AppPage } from "../../core/components/AppPage";
+import { EnvironmentPageProvider } from "../../environment/view-models/EnvironmentPageContext";
+import { DiscoveryApplianceModal } from "../../environment/views/environment-modals";
 import { HOME_TAB_LABELS } from "../../home/constants";
 import HomeScreenSubtitle from "../../home/views/HomeScreenSubtitle";
 import { useAssessmentEmptyPageViewModel } from "../view-models/useAssessmentEmptyPageViewModel";
@@ -17,7 +19,7 @@ import { DiscoveryApplianceCard } from "./assessment-empty/DiscoveryApplianceCar
 import { RvtoolsCard } from "./assessment-empty/RvtoolsCard";
 import CreateRvtoolsAssessmentModal from "./create-rvtools/CreateRvtoolsAssessmentModal";
 
-export const AssessmentEmptyPage: React.FC = () => {
+const AssessmentEmptyPageContent: React.FC = () => {
   const vm = useAssessmentEmptyPageViewModel();
 
   return (
@@ -75,9 +77,22 @@ export const AssessmentEmptyPage: React.FC = () => {
         resumePartialAssessmentId={vm.rvtoolsPartialAssessmentId}
         isNavigatingToReport={vm.isNavigatingToReport}
       />
+      {vm.isDiscoveryApplianceModalOpen && (
+        <DiscoveryApplianceModal
+          isOpen
+          onClose={vm.onCloseDiscoveryApplianceModal}
+          state={{ mode: "create" }}
+        />
+      )}
     </AppPage>
   );
 };
+
+export const AssessmentEmptyPage: React.FC = () => (
+  <EnvironmentPageProvider>
+    <AssessmentEmptyPageContent />
+  </EnvironmentPageProvider>
+);
 
 AssessmentEmptyPage.displayName = "AssessmentEmptyPage";
 

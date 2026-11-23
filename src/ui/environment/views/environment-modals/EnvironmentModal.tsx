@@ -114,7 +114,9 @@ export const EnvironmentModal: React.FC<EnvironmentModalProps> = (props) => {
       const url = vm.downloadSourceUrl;
       void Promise.resolve().then(() => {
         if (mode === "create") {
-          const name = initialValues?.environmentName || "";
+          const name = vm.sourceCreatedId
+            ? vm.getSourceById?.(vm.sourceCreatedId)?.name || ""
+            : (initialValues?.environmentName ?? "");
           props.onSuccess(url, name);
         } else {
           const sourceName = editSource?.name || "";

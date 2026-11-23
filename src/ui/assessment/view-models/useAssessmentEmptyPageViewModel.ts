@@ -3,10 +3,13 @@ import { useNavigate } from "react-router-dom";
 
 import type { RvtoolsUploadState } from "../../../data/stores/JobsStore";
 import { routes } from "../../../routing/Routes";
+import { useEnvironmentPage } from "../../environment/view-models/EnvironmentPageContext";
 import { useAssessmentPageViewModel } from "./useAssessmentPageViewModel";
 
 export interface AssessmentEmptyPageViewModel {
   onSelectDiscoveryAppliance: () => void;
+  isDiscoveryApplianceModalOpen: boolean;
+  onCloseDiscoveryApplianceModal: (stage: "create" | "download") => void;
   onSelectRvtools: () => void;
   isRvtoolsModalOpen: boolean;
   onCloseRvtoolsModal: () => void;
@@ -31,6 +34,7 @@ export interface AssessmentEmptyPageViewModel {
 export const useAssessmentEmptyPageViewModel =
   (): AssessmentEmptyPageViewModel => {
     const navigate = useNavigate();
+    const environmentVm = useEnvironmentPage();
     const assessmentPageVm = useAssessmentPageViewModel();
     const {
       cancelRVToolsJob,
@@ -39,6 +43,8 @@ export const useAssessmentEmptyPageViewModel =
       removeRvtoolsUploadResult,
     } = assessmentPageVm;
     const [isRvtoolsModalOpen, setIsRvtoolsModalOpen] = useState(false);
+    const [isDiscoveryApplianceModalOpen, setIsDiscoveryApplianceModalOpen] =
+      useState(false);
 
     const onCloseRvtoolsModal = useCallback((): void => {
       void cancelRVToolsJob();
@@ -69,9 +75,16 @@ export const useAssessmentEmptyPageViewModel =
 
     return {
       onSelectDiscoveryAppliance: () => {
-        void navigate(routes.assessmentCreate, {
-          state: { reset: true, ovaGoal: "new-appliance" },
-        });
+        setIsDiscoveryApplianceModalOpen(true);
+      },
+      isDiscoveryApplianceModalOpen,
+      onCloseDiscoveryApplianceModal: (stage) => {
+        setIsDiscoveryApplianceModalOpen(false);
+        environmentVm.setDownloadUrl("");
+        void environmentVm.listSources();
+        if (stage === "download") {
+          void navigate(routes.environments);
+        }
       },
       onSelectRvtools: () => {
         assessmentPageVm.clearJobCreateError();

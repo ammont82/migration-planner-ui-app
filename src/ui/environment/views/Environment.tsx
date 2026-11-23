@@ -14,8 +14,8 @@ import { useEnvironmentPage } from "../view-models/EnvironmentPageContext";
 import type { EnvironmentPageViewModel } from "../view-models/useEnvironmentPageViewModel";
 import {
   CreateDiscoveryAssessmentModal,
-  DownloadEnvironmentModal,
-  EnvironmentModal,
+  DiscoveryApplianceModal,
+  type DiscoveryApplianceModalState,
 } from "./environment-modals";
 import { SourcesTable } from "./SourcesTable";
 
@@ -24,19 +24,14 @@ type EnvironmentContentProps = {
 };
 
 const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
-  const [shouldShowCreateModal, setShouldShowCreateModal] = useState(false);
+  const [discoveryApplianceModalState, setDiscoveryApplianceModalState] =
+    useState<DiscoveryApplianceModalState | null>(null);
   const [isCreateAssessmentModalOpen, setIsCreateAssessmentModalOpen] =
     useState(false);
   const [
     createAssessmentPreselectedSourceId,
     setCreateAssessmentPreselectedSourceId,
   ] = useState<string | undefined>(undefined);
-  const [shouldShowEditModal, setShouldShowEditModal] = useState(false);
-  const [shouldShowDownloadModal, setShouldShowDownloadModal] = useState(false);
-  const [editSourceId, setEditSourceId] = useState<string | null>(null);
-  const [downloadSourceId, setDownloadSourceId] = useState<string | null>(null);
-  const [downloadUrlForModal, setDownloadUrlForModal] = useState<string>("");
-  const [sourceNameForModal, setSourceNameForModal] = useState<string>("");
   const [firstSource, ..._otherSources] = vm.sources ?? [];
   const sourceSelected =
     (vm.sourceSelected &&
@@ -148,16 +143,20 @@ const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
 
       <SourcesTable
         onEditEnvironment={(sourceId) => {
-          setEditSourceId(sourceId);
           vm.selectSourceById?.(sourceId);
-          setShouldShowEditModal(true);
+          setDiscoveryApplianceModalState({ mode: "edit", sourceId });
         }}
         onAddEnvironment={() => {
-          setShouldShowCreateModal(true);
+          setDiscoveryApplianceModalState({ mode: "create" });
         }}
         onDownloadOva={(sourceId) => {
-          setDownloadSourceId(sourceId);
-          setShouldShowDownloadModal(true);
+          setDiscoveryApplianceModalState({
+            mode: "download",
+            download: {
+              sourceId,
+              sourceName: vm.getSourceById?.(sourceId)?.name || "",
+            },
+          });
         }}
         onCreateAssessment={(sourceId) => {
           setCreateAssessmentPreselectedSourceId(sourceId);
@@ -178,63 +177,20 @@ const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
         }}
       />
 
-      {shouldShowCreateModal && (
-        <EnvironmentModal
-          isOpen={shouldShowCreateModal}
-          onClose={() => {
-            setShouldShowCreateModal(false);
-            void vm.listSources();
-          }}
-          onSuccess={(url, name) => {
-            setShouldShowCreateModal(false);
-            setDownloadUrlForModal(url);
-            setSourceNameForModal(name);
-            setShouldShowDownloadModal(true);
-          }}
-        />
-      )}
-
-      {shouldShowEditModal && editSourceId && (
-        <EnvironmentModal
-          isOpen={shouldShowEditModal}
-          onClose={() => {
-            setEditSourceId(null);
-            setShouldShowEditModal(false);
-          }}
-          sourceId={editSourceId}
-          onSuccess={(url, name) => {
-            setShouldShowEditModal(false);
-            setDownloadUrlForModal(url);
-            setSourceNameForModal(name);
-            setShouldShowDownloadModal(true);
-          }}
-        />
-      )}
-
-      {shouldShowDownloadModal && (
-        <DownloadEnvironmentModal
-          isOpen={shouldShowDownloadModal}
-          onClose={() => {
-            setDownloadSourceId(null);
-            setShouldShowDownloadModal(false);
-            setDownloadUrlForModal("");
-            setSourceNameForModal("");
-            vm.setDownloadUrl?.("");
-          }}
-          downloadUrl={downloadUrlForModal || undefined}
-          sourceName={
-            sourceNameForModal ||
-            (downloadSourceId
-              ? vm.getSourceById?.(downloadSourceId)?.name || ""
-              : "")
-          }
-          sourceId={downloadSourceId || undefined}
-          onStartDownload={() => setIsOvaDownloading(true)}
-          onAfterDownload={async () => {
-            await vm.listSources();
-          }}
-        />
-      )}
+      <DiscoveryApplianceModal
+        isOpen={discoveryApplianceModalState !== null}
+        state={discoveryApplianceModalState ?? { mode: "create" }}
+        onClose={() => {
+          setDiscoveryApplianceModalState(null);
+        }}
+        onCreationSuccess={() => {
+          void vm.listSources();
+        }}
+        onStartDownload={() => setIsOvaDownloading(true)}
+        onAfterDownload={async () => {
+          await vm.listSources();
+        }}
+      />
     </Stack>
   );
 };
