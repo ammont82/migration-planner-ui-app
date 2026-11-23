@@ -114,6 +114,11 @@ const ReportContent: React.FC = () => {
     ? "Export is unavailable because this assessment has no VMs with host inventory."
     : "Export is unavailable because this cluster has no VMs.";
 
+  const assessmentParentBreadcrumb = vm.assessmentBreadcrumbParent ?? {
+    to: routes.assessments,
+    label: HOME_TAB_LABELS.assessments,
+  };
+
   const hasTopPageAlerts =
     Boolean(vm.vcenterInventoryLoadError) ||
     Boolean(vm.clusterInventoryLoadError) ||
@@ -159,8 +164,8 @@ const ReportContent: React.FC = () => {
           },
           {
             key: 2,
-            to: routes.assessments,
-            children: HOME_TAB_LABELS.assessments,
+            to: assessmentParentBreadcrumb.to,
+            children: assessmentParentBreadcrumb.label,
           },
           {
             key: 3,
