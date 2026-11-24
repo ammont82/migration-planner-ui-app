@@ -63,7 +63,7 @@
     "@types/node": "^26.6.6",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
-    "@typescript-eslint/parser": "^8.72.2",
+    "@typescript-eslint/parser": "^8.73.0",
     "@vitejs/plugin-react": "^6.3.0",
     "@vitest/coverage-v8": "^5.1.0",
     "better-npm-audit": "^3.13.1",
@@ -84,7 +84,7 @@
     "style-loader": "^4.0.0",
     "ts-patch": "^4.0.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.72.2",
+    "typescript-eslint": "^8.73.0",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"
   },
