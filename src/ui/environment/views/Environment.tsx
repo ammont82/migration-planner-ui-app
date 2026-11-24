@@ -15,7 +15,7 @@ import type { EnvironmentPageViewModel } from "../view-models/useEnvironmentPage
 import {
   CreateDiscoveryAssessmentModal,
   DiscoveryApplianceModal,
-  type DiscoveryApplianceModalState,
+  type DiscoveryApplianceModalInitialState,
 } from "./environment-modals";
 import { SourcesTable } from "./SourcesTable";
 
@@ -24,8 +24,10 @@ type EnvironmentContentProps = {
 };
 
 const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
-  const [discoveryApplianceModalState, setDiscoveryApplianceModalState] =
-    useState<DiscoveryApplianceModalState | null>(null);
+  const [
+    discoveryApplianceModalInitialState,
+    setDiscoveryApplianceModalInitialState,
+  ] = useState<DiscoveryApplianceModalInitialState | null>(null);
   const [isCreateAssessmentModalOpen, setIsCreateAssessmentModalOpen] =
     useState(false);
   const [
@@ -144,13 +146,13 @@ const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
       <SourcesTable
         onEditEnvironment={(sourceId) => {
           vm.selectSourceById?.(sourceId);
-          setDiscoveryApplianceModalState({ mode: "edit", sourceId });
+          setDiscoveryApplianceModalInitialState({ mode: "edit", sourceId });
         }}
         onAddEnvironment={() => {
-          setDiscoveryApplianceModalState({ mode: "create" });
+          setDiscoveryApplianceModalInitialState({ mode: "create" });
         }}
         onDownloadOva={(sourceId) => {
-          setDiscoveryApplianceModalState({
+          setDiscoveryApplianceModalInitialState({
             mode: "download",
             download: {
               sourceId,
@@ -177,20 +179,26 @@ const EnvironmentContent: React.FC<EnvironmentContentProps> = ({ vm }) => {
         }}
       />
 
-      <DiscoveryApplianceModal
-        isOpen={discoveryApplianceModalState !== null}
-        state={discoveryApplianceModalState ?? { mode: "create" }}
-        onClose={() => {
-          setDiscoveryApplianceModalState(null);
-        }}
-        onCreationSuccess={() => {
-          void vm.listSources();
-        }}
-        onStartDownload={() => setIsOvaDownloading(true)}
-        onAfterDownload={async () => {
-          await vm.listSources();
-        }}
-      />
+      {discoveryApplianceModalInitialState && (
+        <DiscoveryApplianceModal
+          initialState={discoveryApplianceModalInitialState}
+          onCancel={() => {
+            vm.setDownloadUrl("");
+            setDiscoveryApplianceModalInitialState(null);
+          }}
+          onClose={() => {
+            vm.setDownloadUrl("");
+            setDiscoveryApplianceModalInitialState(null);
+          }}
+          onCreationSuccess={() => {
+            void vm.listSources();
+          }}
+          onStartDownload={() => setIsOvaDownloading(true)}
+          onAfterDownload={async () => {
+            await vm.listSources();
+          }}
+        />
+      )}
     </Stack>
   );
 };

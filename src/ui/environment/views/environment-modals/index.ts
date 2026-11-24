@@ -2,9 +2,8 @@ export type { CreateDiscoveryAssessmentModalProps } from "./CreateDiscoveryAsses
 export { CreateDiscoveryAssessmentModal } from "./CreateDiscoveryAssessmentModal";
 export type {
   DiscoveryApplianceDownload,
+  DiscoveryApplianceModalInitialState,
   DiscoveryApplianceModalProps,
-  DiscoveryApplianceModalStage,
-  DiscoveryApplianceModalState,
 } from "./DiscoveryApplianceModal";
 export { DiscoveryApplianceModal } from "./DiscoveryApplianceModal";
 export type { DownloadEnvironmentModalProps } from "./DownloadEnvironmentModal";

@@ -9,7 +9,8 @@ import { useAssessmentPageViewModel } from "./useAssessmentPageViewModel";
 export interface AssessmentEmptyPageViewModel {
   onSelectDiscoveryAppliance: () => void;
   isDiscoveryApplianceModalOpen: boolean;
-  onCloseDiscoveryApplianceModal: (stage: "create" | "download") => void;
+  onCancelDiscoveryApplianceModal: () => void;
+  onCloseDiscoveryApplianceModal: () => void;
   onSelectRvtools: () => void;
   isRvtoolsModalOpen: boolean;
   onCloseRvtoolsModal: () => void;
@@ -73,19 +74,24 @@ export const useAssessmentEmptyPageViewModel =
       );
     }, [completePartialRvtoolsUpload, navigate]);
 
+    const onCancelDiscoveryApplianceModal = useCallback((): void => {
+      setIsDiscoveryApplianceModalOpen(false);
+      environmentVm.setDownloadUrl("");
+      void environmentVm.listSources();
+    }, [environmentVm]);
+
+    const onCloseDiscoveryApplianceModal = useCallback((): void => {
+      onCancelDiscoveryApplianceModal();
+      void navigate(routes.environments);
+    }, [onCancelDiscoveryApplianceModal, navigate]);
+
     return {
       onSelectDiscoveryAppliance: () => {
         setIsDiscoveryApplianceModalOpen(true);
       },
       isDiscoveryApplianceModalOpen,
-      onCloseDiscoveryApplianceModal: (stage) => {
-        setIsDiscoveryApplianceModalOpen(false);
-        environmentVm.setDownloadUrl("");
-        void environmentVm.listSources();
-        if (stage === "download") {
-          void navigate(routes.environments);
-        }
-      },
+      onCancelDiscoveryApplianceModal,
+      onCloseDiscoveryApplianceModal,
       onSelectRvtools: () => {
         assessmentPageVm.clearJobCreateError();
         setIsRvtoolsModalOpen(true);

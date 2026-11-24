@@ -113,15 +113,16 @@ export const EnvironmentModal: React.FC<EnvironmentModalProps> = (props) => {
     if (vm.downloadSourceUrl && isOpen) {
       const url = vm.downloadSourceUrl;
       void Promise.resolve().then(() => {
+        let sourceName: string;
         if (mode === "create") {
-          const name = vm.sourceCreatedId
+          sourceName = vm.sourceCreatedId
             ? vm.getSourceById?.(vm.sourceCreatedId)?.name || ""
             : (initialValues?.environmentName ?? "");
-          props.onSuccess(url, name);
         } else {
-          const sourceName = editSource?.name || "";
-          props.onSuccess(url, sourceName);
+          sourceName = editSource?.name || "";
         }
+        vm.setDownloadUrl("");
+        props.onSuccess(url, sourceName);
         resetForm();
       });
     }

@@ -7,40 +7,33 @@ export type DiscoveryApplianceDownload =
   | { downloadUrl: string; sourceName: string }
   | { sourceId: string; sourceName: string };
 
-export type DiscoveryApplianceModalState =
+export type DiscoveryApplianceModalInitialState =
   | { mode: "create" }
   | { mode: "edit"; sourceId: string }
   | { mode: "download"; download: DiscoveryApplianceDownload };
 
-export type DiscoveryApplianceModalStage = "create" | "download";
-
 export interface DiscoveryApplianceModalProps {
-  isOpen: boolean;
-  onClose: (stage: DiscoveryApplianceModalStage) => void;
-  state: DiscoveryApplianceModalState;
+  initialState: DiscoveryApplianceModalInitialState;
   onCreationSuccess?: (downloadUrl: string, sourceName: string) => void;
+  onCancel: () => void;
   onStartDownload?: () => void;
   onAfterDownload?: () => Promise<void>;
+  onClose: () => void;
 }
 
 export const DiscoveryApplianceModal: React.FC<
   DiscoveryApplianceModalProps
 > = ({
-  isOpen,
-  onClose,
-  state,
+  initialState,
   onCreationSuccess,
+  onCancel,
   onStartDownload,
   onAfterDownload,
+  onClose,
 }) => {
-  const initialDownload =
+  const [state, setState] = useState(initialState);
+  const currentDownload =
     state.mode === "download" ? state.download : undefined;
-  const isDownloadState = state.mode === "download";
-  const [createdDownload, setCreatedDownload] = useState<
-    DiscoveryApplianceDownload | undefined
-  >(undefined);
-  const isDownloadStep = isDownloadState || Boolean(createdDownload);
-  const currentDownload = initialDownload ?? createdDownload;
   const downloadUrl =
     currentDownload && "downloadUrl" in currentDownload
       ? currentDownload.downloadUrl
@@ -54,30 +47,25 @@ export const DiscoveryApplianceModal: React.FC<
     downloadUrl: string,
     sourceName: string,
   ): void => {
-    setCreatedDownload({ downloadUrl, sourceName });
+    setState({
+      mode: "download",
+      download: { downloadUrl, sourceName },
+    });
     onCreationSuccess?.(downloadUrl, sourceName);
   };
 
-  const handleClose = (): void => {
-    const closedStage: DiscoveryApplianceModalStage = isDownloadStep
-      ? "download"
-      : "create";
-    setCreatedDownload(undefined);
-    onClose(closedStage);
-  };
-
-  if (!isDownloadStep) {
+  if (state.mode !== "download") {
     return state.mode === "edit" ? (
       <EnvironmentModal
-        isOpen={isOpen}
-        onClose={handleClose}
+        isOpen
+        onClose={onCancel}
         sourceId={state.sourceId}
         onSuccess={handleCreationSuccess}
       />
     ) : (
       <EnvironmentModal
-        isOpen={isOpen}
-        onClose={handleClose}
+        isOpen
+        onClose={onCancel}
         onSuccess={handleCreationSuccess}
       />
     );
@@ -85,8 +73,8 @@ export const DiscoveryApplianceModal: React.FC<
 
   return (
     <DownloadEnvironmentModal
-      isOpen={isOpen}
-      onClose={handleClose}
+      isOpen
+      onClose={onClose}
       downloadUrl={downloadUrl}
       sourceName={currentDownload?.sourceName ?? ""}
       sourceId={downloadSourceId}

@@ -79,9 +79,9 @@ const AssessmentEmptyPageContent: React.FC = () => {
       />
       {vm.isDiscoveryApplianceModalOpen && (
         <DiscoveryApplianceModal
-          isOpen
+          initialState={{ mode: "create" }}
+          onCancel={vm.onCancelDiscoveryApplianceModal}
           onClose={vm.onCloseDiscoveryApplianceModal}
-          state={{ mode: "create" }}
         />
       )}
     </AppPage>
