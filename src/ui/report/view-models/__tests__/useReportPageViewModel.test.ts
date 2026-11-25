@@ -1343,6 +1343,76 @@ describe("useReportPageViewModel", () => {
       expect(result.current.vms?.total).toBe(2);
     });
 
+    it("enables export when vCenter API omits hosts but scoped subset snapshot has cluster inventory", async () => {
+      const assessment = createAssessment("assessment-1");
+      assessment.sourceType = "rvtools";
+      assessment.snapshots = [
+        {
+          createdAt: new Date(),
+          inventory: {
+            vcenterId: "aggregate",
+            vcenter: {
+              infra: createInfra(0, 0),
+              vms: createVMs(5),
+            },
+            clusters: {},
+          },
+          subsetInventories: [
+            {
+              id: "group-1",
+              name: "VC 1",
+              vcenterId: "vc-api-1",
+              vmsCount: 5,
+              createdAt: new Date(),
+              inventory: {
+                vcenterId: "vc-api-1",
+                clusters: {
+                  "domain-c7": {
+                    infra: createInfra(2, 2),
+                    vms: createVMs(5),
+                  },
+                },
+              },
+            },
+            {
+              id: "group-2",
+              name: "VC 2",
+              vcenterId: "vc-api-2",
+              vmsCount: 3,
+              createdAt: new Date(),
+              inventory: {
+                vcenterId: "vc-api-2",
+                clusters: {},
+              },
+            },
+          ],
+        },
+      ];
+      mockAssessmentsStore.getSnapshot.mockReturnValue([assessment]);
+      mockAssessmentsStore.getVcenter.mockResolvedValue({
+        data: {
+          id: "vc-api-1",
+          data: {
+            infra: createInfra(0, 0),
+            vms: createVMs(5),
+          },
+        },
+        clusters: [{ id: "domain-c7" }],
+      });
+
+      const { result } = renderHook(() => useReportPageViewModel());
+
+      act(() => {
+        result.current.selectVcenterScope("group-1");
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current.canExportReport).toBe(true);
+    });
+
     it("enables export on aggregate cluster view when snapshot has cluster host inventory", async () => {
       const assessment = createAssessment("assessment-1");
       assessment.sourceType = "rvtools";
