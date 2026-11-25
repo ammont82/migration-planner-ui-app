@@ -166,7 +166,7 @@ export const useAssessmentPageViewModel = (): AssessmentPageViewModel => {
 
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
 
-  const userSelectedColumnsVersion = 4;
+  const userSelectedColumnsVersion = 6;
   const [userSelectedColumns, setUserSelectedColumns] = useLocalStorage<
     ColumnKey[]
   >(VISIBLE_COLUMNS_KEY, DEFAULT_VISIBLE_COLUMNS, userSelectedColumnsVersion);
@@ -179,18 +179,17 @@ export const useAssessmentPageViewModel = (): AssessmentPageViewModel => {
   });
 
   // Ensure mandatory columns are always included
-  const visibleColumns = useMemo(
-    () =>
-      Array.from(
-        new Set([
-          ...userSelectedColumns.filter((key) =>
-            DEFAULT_VISIBLE_COLUMNS.includes(key),
-          ),
-          ...MANDATORY_COLUMNS,
-        ]),
-      ),
-    [userSelectedColumns],
-  );
+  const visibleColumns = useMemo(() => {
+    const legacyKeyMap: Record<string, ColumnKey> = {
+      LastUpdated: "ImportedToConsole",
+    };
+    const normalized = userSelectedColumns
+      .map((key) => legacyKeyMap[key] ?? key)
+      .filter((key): key is ColumnKey => DEFAULT_VISIBLE_COLUMNS.includes(key));
+    const columns =
+      normalized.length > 0 ? normalized : [...DEFAULT_VISIBLE_COLUMNS];
+    return Array.from(new Set([...columns, ...MANDATORY_COLUMNS]));
+  }, [userSelectedColumns]);
 
   // Reset sort to Name column if the currently sorted column becomes hidden
   const sortBy = useMemo(() => {

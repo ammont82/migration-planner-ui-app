@@ -3,6 +3,10 @@ import React, { useMemo } from "react";
 import { formatRelativeTime } from "../../../lib/common/Time";
 import type { AssessmentModel } from "../../../models/AssessmentModel";
 import {
+  getAssessmentDataCollectedMs,
+  getAssessmentImportedMs,
+} from "../../../models/assessmentTimestamps";
+import {
   type AssessmentSourceFilterKey,
   getAssessmentSourceLabel,
   sourceMatchesAssessmentSourceFilter,
@@ -11,6 +15,7 @@ import {
   AssessmentsTable,
   type AssessmentTableRow,
   type ColumnKey,
+  Columns,
   DEFAULT_VISIBLE_COLUMNS,
   type SortableColumn,
 } from "./AssessmentsTable";
@@ -56,7 +61,6 @@ export const AssessmentsList: React.FC<AssessmentsListProps> = ({
       const id = String(assessment.id ?? "");
       const sourceType = assessment.sourceType || "Unknown";
       const source = getAssessmentSourceLabel(sourceType);
-      const snapshots = assessment.snapshots ?? [];
       const permissions = Array.isArray(assessment.permissions)
         ? assessment.permissions
         : [];
@@ -68,17 +72,8 @@ export const AssessmentsList: React.FC<AssessmentsListProps> = ({
       const ownerFullName = assessment.ownerFullName;
       const hasData = assessment.hasUsefulData;
 
-      // Compute latest snapshot timestamp (ms) for reliable sort/filter
-      const lastUpdatedMs: number =
-        Array.isArray(snapshots) && snapshots.length
-          ? Math.max(
-              ...snapshots.map((s) =>
-                s?.createdAt
-                  ? new Date(s.createdAt as unknown as string).getTime()
-                  : 0,
-              ),
-            )
-          : 0;
+      const dataCollectedMs = getAssessmentDataCollectedMs(assessment);
+      const importedMs = getAssessmentImportedMs(assessment);
 
       return {
         key: id || name,
@@ -86,7 +81,8 @@ export const AssessmentsList: React.FC<AssessmentsListProps> = ({
         name,
         source,
         sourceType,
-        lastUpdatedMs,
+        dataCollectedMs,
+        importedMs,
         owner: ownerFullName,
         hosts: snapshotData.hosts,
         vms: snapshotData.vms,
@@ -122,7 +118,8 @@ export const AssessmentsList: React.FC<AssessmentsListProps> = ({
             (i.owner || "").toLowerCase().includes(filterValue.toLowerCase()),
           );
           break;
-        case "Last updated": {
+        case Columns.ImportedToConsole:
+        case "Imported to console": {
           const query = filterValue.trim().toLowerCase();
           // eslint-disable-next-line react-hooks/purity
           const nowMs = Date.now();
@@ -177,7 +174,64 @@ export const AssessmentsList: React.FC<AssessmentsListProps> = ({
             return formatRelativeTime(itemMs).toLowerCase().includes(query);
           };
 
-          filtered = filtered.filter((i) => matchByRule(i.lastUpdatedMs));
+          filtered = filtered.filter((i) => matchByRule(i.importedMs ?? 0));
+          break;
+        }
+        case Columns.DataCollectedOn:
+        case "Data collected on": {
+          const query = filterValue.trim().toLowerCase();
+          // eslint-disable-next-line react-hooks/purity
+          const nowMs = Date.now();
+          const oneDayMs = 24 * 60 * 60 * 1000;
+          const matchByRule = (itemMs: number): boolean => {
+            if (!itemMs) {
+              return false;
+            }
+            const diffDays = Math.floor((nowMs - itemMs) / oneDayMs);
+
+            if (query === "today") return diffDays === 0;
+            if (query === "yesterday") return diffDays === 1;
+            if (
+              query === "last 7 days" ||
+              query === "past 7 days" ||
+              query === "week"
+            )
+              return diffDays >= 0 && diffDays < 7;
+            if (
+              query === "last 30 days" ||
+              query === "past 30 days" ||
+              query === "month" ||
+              query === "last month"
+            )
+              return diffDays >= 0 && diffDays < 30;
+
+            const rel = query.match(/(\d+)\s*(d|day|days)\b/);
+            if (rel) {
+              const days = Number(rel[1]);
+              if (!Number.isNaN(days)) {
+                return diffDays >= 0 && diffDays < days;
+              }
+            }
+
+            const parsed = new Date(filterValue);
+            if (!Number.isNaN(parsed.getTime())) {
+              const targetY = parsed.getFullYear();
+              const targetM = parsed.getMonth();
+              const targetD = parsed.getDate();
+              const d = new Date(itemMs);
+              return (
+                d.getFullYear() === targetY &&
+                d.getMonth() === targetM &&
+                d.getDate() === targetD
+              );
+            }
+
+            return formatRelativeTime(itemMs).toLowerCase().includes(query);
+          };
+
+          filtered = filtered.filter((i) =>
+            matchByRule(i.dataCollectedMs ?? 0),
+          );
           break;
         }
       }
@@ -216,10 +270,17 @@ export const AssessmentsList: React.FC<AssessmentsListProps> = ({
             : b.source.localeCompare(a.source),
         );
         break;
-      case "LastUpdated":
+      case "DataCollectedOn":
         copy.sort((a, b) => {
-          const aMs = typeof a.lastUpdatedMs === "number" ? a.lastUpdatedMs : 0;
-          const bMs = typeof b.lastUpdatedMs === "number" ? b.lastUpdatedMs : 0;
+          const aMs = a.dataCollectedMs ?? 0;
+          const bMs = b.dataCollectedMs ?? 0;
+          return sortBy.direction === "asc" ? aMs - bMs : bMs - aMs;
+        });
+        break;
+      case "ImportedToConsole":
+        copy.sort((a, b) => {
+          const aMs = a.importedMs ?? 0;
+          const bMs = b.importedMs ?? 0;
           return sortBy.direction === "asc" ? aMs - bMs : bMs - aMs;
         });
         break;

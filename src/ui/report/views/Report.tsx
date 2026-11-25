@@ -194,9 +194,14 @@ const ReportContent: React.FC = () => {
               </p>
             </StackItem>
             <StackItem>
-              {vm.lastUpdatedText !== "-"
-                ? `Last updated: ${vm.lastUpdatedText}`
-                : "[Last updated time stamp]"}
+              <p>
+                <strong>Data collected on:</strong> {vm.dataCollectedText}
+              </p>
+            </StackItem>
+            <StackItem>
+              <p>
+                <strong>Imported to console:</strong> {vm.importedToConsoleText}
+              </p>
             </StackItem>
             <StackItem>
               {vm.inventoryScopeSummary ? (
