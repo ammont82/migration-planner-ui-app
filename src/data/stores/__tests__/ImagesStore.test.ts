@@ -1,4 +1,7 @@
-import type { ImageApiInterface } from "@openshift-migration-advisor/planner-sdk";
+import {
+  GetSourceDownloadURLImageEnum,
+  type ImageApiInterface,
+} from "@openshift-migration-advisor/planner-sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ImagesStore } from "../ImagesStore";
@@ -94,5 +97,18 @@ describe("ImagesStore", () => {
     await store.getDownloadUrl("s-1");
 
     expect(listener).toHaveBeenCalled();
+  });
+
+  it("getAgentImageDownloadUrl() requests appliance image via getSourceDownloadURL", async () => {
+    const url = "https://example.com/agent-update.tar?token=abc";
+    vi.mocked(api.getSourceDownloadURL).mockResolvedValue({ url });
+
+    const result = await store.getAgentImageDownloadUrl("s-1");
+
+    expect(api.getSourceDownloadURL).toHaveBeenCalledWith(
+      { id: "s-1", image: GetSourceDownloadURLImageEnum.Appliance },
+      { signal: undefined },
+    );
+    expect(result).toBe(url);
   });
 });

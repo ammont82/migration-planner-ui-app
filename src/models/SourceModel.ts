@@ -1,5 +1,9 @@
 import type { Agent, Source } from "@openshift-migration-advisor/planner-sdk";
 
+type SourceApplianceFields = Source & {
+  applianceUpdateSupported?: boolean | null;
+};
+
 // ---------------------------------------------------------------------------
 // Public type
 // ---------------------------------------------------------------------------
@@ -18,6 +22,11 @@ export type SourceModel = Source & {
   readonly isConnected: boolean;
   /** Agent status; defaults to "not-connected" when no agent is present. */
   readonly displayStatus: Agent["status"];
+  /**
+   * Whether the source appliance supports in-place update with the served image.
+   * Null when the API does not provide the field.
+   */
+  readonly applianceUpdateSupported: boolean | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -32,17 +41,20 @@ export type SourceModel = Source & {
  * derived data stays fresh.
  */
 export const createSourceModel = (raw: Source): SourceModel => {
+  const extended = raw as SourceApplianceFields;
   const agentStatus = raw.agent?.status;
   const displayStatus: Agent["status"] = agentStatus ?? "not-connected";
   const isConnected = raw.agent != null && agentStatus !== "not-connected";
   const isReady =
     agentStatus === "up-to-date" ||
     (Boolean(raw.onPremises) && raw.inventory !== undefined);
+  const applianceUpdateSupported = extended.applianceUpdateSupported ?? null;
 
   return {
     ...raw,
     isReady,
     isConnected,
     displayStatus,
+    applianceUpdateSupported,
   };
 };

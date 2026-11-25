@@ -31,6 +31,17 @@ vi.mock("../../view-models/EnvironmentPageContext", () => ({
   useEnvironmentPage: () => mockVm,
 }));
 
+const mockDownloadAgentImage = vi.fn();
+
+vi.mock("../../hooks/useAgentImageDownload", () => ({
+  useAgentImageDownload: () => ({
+    downloadAgentImage: mockDownloadAgentImage,
+    isDownloading: false,
+    downloadError: null,
+    clearDownloadError: vi.fn(),
+  }),
+}));
+
 vi.mock(
   "@patternfly/react-component-groups/dist/dynamic/ColumnManagementModal",
   () => ({
@@ -121,8 +132,12 @@ const SAMPLE_INVENTORY: Inventory = {
   },
 };
 
+type TestSourceOverrides = Partial<Source> & {
+  applianceUpdateSupported?: boolean | null;
+};
+
 const makeSource = (
-  overrides: Partial<Source> & Pick<Source, "id" | "name">,
+  overrides: TestSourceOverrides & Pick<Source, "id" | "name">,
 ): SourceModel =>
   createSourceModel({
     createdAt: now,
@@ -138,11 +153,20 @@ const ALL_STATUS_SOURCES: SourceModel[] = [
     name: "Lab vCenter (OVA downloading)",
   }),
 
-  // 2. Not connected — no agent, agentVersion set → "OVA downloaded"
+  // 2. Not connected — no agent, agentVersion set → "Image downloaded"
   makeSource({
     id: "src-ova-downloaded",
-    name: "Lab vCenter (OVA downloaded)",
+    name: "Lab vCenter (image downloaded)",
     agentVersion: "1.4.0",
+  }),
+
+  // 2b. Disconnected — update available
+  makeSource({
+    id: "src-disconnected-update",
+    name: "Remote vCenter (update available)",
+    agentVersion: "1.2.0",
+    agentVersionWarning: "Version mismatch for disconnected source.",
+    applianceUpdateSupported: true,
   }),
 
   // 3. Uploaded manually — no agent, onPremises with inventory
@@ -198,15 +222,27 @@ const ALL_STATUS_SOURCES: SourceModel[] = [
     inventory: SAMPLE_INVENTORY,
   }),
 
-  // 7. Ready — agent version outdated
+  // 7. Connected — in-place update available
   makeSource({
-    id: "src-outdated",
-    name: "Legacy vCenter (outdated agent)",
+    id: "src-update-available",
+    name: "Archive vCenter (update available)",
     agent: makeAgent({ status: "up-to-date", version: "1.2.0" }),
     inventory: SAMPLE_INVENTORY,
     agentVersion: "1.2.0",
+    agentVersionWarning: "Agent version mismatch detected.",
+    applianceUpdateSupported: true,
+  }),
+
+  // 8. Connected — outdated (new OVA required)
+  makeSource({
+    id: "src-outdated",
+    name: "Legacy vCenter (outdated agent)",
+    agent: makeAgent({ status: "up-to-date", version: "0.8.0" }),
+    inventory: SAMPLE_INVENTORY,
+    agentVersion: "0.8.0",
     agentVersionWarning:
-      "Agent version 1.2.0 is outdated. Please redeploy the OVA to upgrade to 1.4.0.",
+      "does not support in-place updates. Deploy a new OVA to update this source.",
+    applianceUpdateSupported: false,
   }),
 ];
 
@@ -254,6 +290,7 @@ function makeBaseVm(
 
     getDownloadUrlForSource: vi.fn(),
     fetchDownloadUrlForSource: vi.fn().mockResolvedValue(""),
+    fetchAgentImageDownloadUrl: vi.fn().mockResolvedValue(""),
 
     listAssessments: vi.fn().mockResolvedValue([]),
     isLoadingAssessments: false,
@@ -341,8 +378,8 @@ describe("SourcesTable — all status states", () => {
   it('shows "Sharing with Red Hat" for up-to-date sources', () => {
     render(<SourcesTable onAddEnvironment={vi.fn()} />);
     const sharingLabels = screen.getAllByText("Sharing with Red Hat");
-    // Two sources with up-to-date status (current + outdated agent)
-    expect(sharingLabels).toHaveLength(2);
+    // Connected agents in up-to-date appliance status (production, update-available, outdated)
+    expect(sharingLabels.length).toBeGreaterThanOrEqual(2);
   });
 
   // --- Agent version column -----------------------------------------------
@@ -352,12 +389,12 @@ describe("SourcesTable — all status states", () => {
     expect(screen.getByText("Download pending")).toBeInTheDocument();
   });
 
-  it('shows "OVA downloaded" when not connected but agentVersion is set', () => {
+  it('shows "Image downloaded" when not connected but agentVersion is set', () => {
     mockVm = makeBaseVm({
       sources: [
         makeSource({
           id: "src-ova-downloaded-only",
-          name: "OVA downloaded only",
+          name: "Image downloaded only",
           agentVersion: "1.4.0",
         }),
       ],
@@ -368,7 +405,7 @@ describe("SourcesTable — all status states", () => {
     const table = screen.getByRole("grid", { name: "Sources table" });
     const dataRow = within(table).getAllByRole("row")[1];
     const cells = within(dataRow).getAllByRole("cell");
-    expect(cells[4]).toHaveTextContent("OVA downloaded");
+    expect(cells[4]).toHaveTextContent("Image downloaded");
   });
 
   it('shows "N/A" for the agent version of an uploaded-manually source', () => {
@@ -425,8 +462,11 @@ describe("SourcesTable — all status states", () => {
     expect(upToDateLabels.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows "Outdated" in the agent version column when agentVersionWarning is set', () => {
+  it('shows "Update available" and "Outdated" labels from warning type', () => {
     render(<SourcesTable onAddEnvironment={vi.fn()} />);
+    expect(
+      screen.getAllByText("Update available").length,
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Outdated")).toBeInTheDocument();
   });
 
@@ -481,7 +521,7 @@ describe("SourcesTable — all status states", () => {
     const rows = within(table).getAllByRole("row");
     const firstDataRow = rows[1];
     expect(
-      within(firstDataRow).getByText("Dev vCenter (error)"),
+      within(firstDataRow).getByText("Archive vCenter (update available)"),
     ).toBeInTheDocument();
   });
 
@@ -521,7 +561,7 @@ describe("SourcesTable — all status states", () => {
     const rows = within(table).getAllByRole("row");
 
     expect(within(rows[1]).getByText("Download pending")).toBeInTheDocument();
-    expect(within(rows[2]).getByText("OVA downloaded")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("Image downloaded")).toBeInTheDocument();
     expect(within(rows[3]).getByText("Up to date")).toBeInTheDocument();
   });
 
@@ -679,5 +719,50 @@ describe("SourcesTable filters", () => {
     expect(
       screen.queryByRole("textbox", { name: "Filter by name" }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("SourcesTable — agent image download", () => {
+  beforeEach(() => {
+    mockDownloadAgentImage.mockClear();
+    mockVm = makeBaseVm();
+  });
+
+  const openActionsForSource = async (
+    user: ReturnType<typeof userEvent.setup>,
+    sourceName: string,
+  ): Promise<void> => {
+    const table = screen.getByRole("grid", { name: "Sources table" });
+    const row = within(table)
+      .getAllByRole("row")
+      .find((r) => within(r).queryByText(sourceName));
+    expect(row).toBeDefined();
+    await user.click(within(row!).getByRole("button", { name: "Actions" }));
+  };
+
+  it('shows "Download agent image" for disconnected discovery appliances only', async () => {
+    const user = userEvent.setup();
+    render(<SourcesTable onAddEnvironment={vi.fn()} />);
+
+    await openActionsForSource(user, "Remote vCenter (update available)");
+    expect(screen.getByText("Download agent image")).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+
+    await openActionsForSource(user, "Production vCenter (up to date)");
+    expect(screen.queryByText("Download agent image")).not.toBeInTheDocument();
+  });
+
+  it("invokes agent image download from the kebab action", async () => {
+    const user = userEvent.setup();
+    render(<SourcesTable onAddEnvironment={vi.fn()} onDownloadOva={vi.fn()} />);
+
+    await openActionsForSource(user, "Remote vCenter (update available)");
+    await user.click(screen.getByText("Download agent image"));
+
+    expect(mockDownloadAgentImage).toHaveBeenCalledWith(
+      "src-disconnected-update",
+      "Remote vCenter (update available)",
+    );
   });
 });

@@ -64,6 +64,7 @@ export interface EnvironmentPageViewModel {
   // Download URLs (cached by ImagesStore)
   getDownloadUrlForSource: (sourceId: string) => string | undefined;
   fetchDownloadUrlForSource: (sourceId: string) => Promise<string>;
+  fetchAgentImageDownloadUrl: (sourceId: string) => Promise<string>;
 
   // Assessments
   getAssessmentsForSource: (sourceId: string) => AssessmentModel[];
@@ -350,6 +351,12 @@ export const useEnvironmentPageViewModel = (): EnvironmentPageViewModel => {
     [imagesStore],
   );
 
+  const fetchAgentImageDownloadUrl = useCallback(
+    async (sourceId: string): Promise<string> =>
+      imagesStore.getAgentImageDownloadUrl(sourceId),
+    [imagesStore],
+  );
+
   // ---- Assessments ---------------------------------------------------------
   const [listAssessmentsState, doListAssessments] = useAsyncFn(
     async () => assessmentsStore.list(),
@@ -457,6 +464,7 @@ export const useEnvironmentPageViewModel = (): EnvironmentPageViewModel => {
 
     getDownloadUrlForSource,
     fetchDownloadUrlForSource,
+    fetchAgentImageDownloadUrl,
 
     listAssessments: doListAssessments,
     isLoadingAssessments: listAssessmentsState.loading,

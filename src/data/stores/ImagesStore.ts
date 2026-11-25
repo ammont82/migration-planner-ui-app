@@ -1,4 +1,7 @@
-import type { ImageApiInterface } from "@openshift-migration-advisor/planner-sdk";
+import {
+  GetSourceDownloadURLImageEnum,
+  type ImageApiInterface,
+} from "@openshift-migration-advisor/planner-sdk";
 
 import { ExternalStoreBase } from "../../lib/mvvm/ExternalStore";
 import type { IImagesStore } from "./interfaces/IImagesStore";
@@ -32,6 +35,17 @@ export class ImagesStore
       [sourceId]: response.url,
     };
     this.notify();
+    return response.url;
+  }
+
+  async getAgentImageDownloadUrl(
+    sourceId: string,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    const response = await this.api.getSourceDownloadURL(
+      { id: sourceId, image: GetSourceDownloadURLImageEnum.Appliance },
+      { signal },
+    );
     return response.url;
   }
 

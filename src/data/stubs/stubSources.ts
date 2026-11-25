@@ -75,8 +75,12 @@ const SAMPLE_INVENTORY: Inventory = {
   },
 };
 
+type StubSourceOverrides = Partial<Source> & {
+  applianceUpdateSupported?: boolean | null;
+};
+
 const makeSource = (
-  overrides: Partial<Source> & Pick<Source, "id" | "name">,
+  overrides: StubSourceOverrides & Pick<Source, "id" | "name">,
 ): Source => ({
   createdAt: now,
   updatedAt: now,
@@ -135,14 +139,37 @@ export const createStubSources = (): Source[] => [
     agentVersion: "1.4.0",
   }),
 
-  // 7. Ready — agent version outdated
+  // 7. Connected — in-place update available
   makeSource({
-    id: "stub-outdated",
-    name: "Legacy vCenter (outdated agent)",
+    id: "stub-update-available",
+    name: "Archive vCenter (update available)",
     agent: makeAgent({ status: "up-to-date", version: "1.2.0" }),
     inventory: SAMPLE_INVENTORY,
     agentVersion: "1.2.0",
     agentVersionWarning:
-      "Agent version 1.2.0 is outdated. Please redeploy the OVA to upgrade to 1.4.0.",
+      "Agent version mismatch detected. The appliance runs version 1.2.0, but the current system version is 1.4.0.",
+    applianceUpdateSupported: true,
+  }),
+
+  // 8. Connected — must deploy new OVA
+  makeSource({
+    id: "stub-outdated",
+    name: "Legacy vCenter (outdated agent)",
+    agent: makeAgent({ status: "up-to-date", version: "0.8.0" }),
+    inventory: SAMPLE_INVENTORY,
+    agentVersion: "0.8.0",
+    agentVersionWarning:
+      "Agent version 0.8.0 does not support in-place updates to 1.4.0. Deploy a new OVA to update this source.",
+    applianceUpdateSupported: false,
+  }),
+
+  // 9. Disconnected — update available (download image)
+  makeSource({
+    id: "stub-disconnected-update",
+    name: "Remote vCenter (update available)",
+    agentVersion: "1.2.0",
+    agentVersionWarning:
+      "Agent version mismatch detected. The appliance runs version 1.2.0, but the current system version is 1.4.0.",
+    applianceUpdateSupported: true,
   }),
 ];

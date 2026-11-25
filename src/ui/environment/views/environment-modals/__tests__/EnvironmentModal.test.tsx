@@ -39,6 +39,7 @@ const mockVm = {
   clearInventoryUploadResult: vi.fn(),
   getDownloadUrlForSource: vi.fn(),
   fetchDownloadUrlForSource: vi.fn().mockResolvedValue(""),
+  fetchAgentImageDownloadUrl: vi.fn().mockResolvedValue(""),
   listAssessments: vi.fn().mockResolvedValue([]),
   isLoadingAssessments: false,
   assessmentFromAgentState: false,

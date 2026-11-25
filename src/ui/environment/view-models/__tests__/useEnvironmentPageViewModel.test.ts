@@ -48,6 +48,7 @@ let mockImagesStore: {
   headImage: ReturnType<typeof vi.fn>;
   getDownloadUrl: ReturnType<typeof vi.fn>;
   getDownloadUrlFromCache: ReturnType<typeof vi.fn>;
+  getAgentImageDownloadUrl: ReturnType<typeof vi.fn>;
   subscribe: ReturnType<typeof vi.fn>;
   getSnapshot: ReturnType<typeof vi.fn>;
 };
@@ -145,6 +146,9 @@ describe("useEnvironmentPageViewModel", () => {
         .fn()
         .mockResolvedValue("https://example.com/image.ova"),
       getDownloadUrlFromCache: vi.fn().mockReturnValue(undefined),
+      getAgentImageDownloadUrl: vi
+        .fn()
+        .mockResolvedValue("https://example.com/agent-update.tar"),
       subscribe: vi.fn(() => () => {}),
       getSnapshot: vi.fn(() => ({})),
     };
@@ -413,6 +417,17 @@ describe("useEnvironmentPageViewModel", () => {
     const { result } = renderHook(() => useEnvironmentPageViewModel());
     expect(result.current.getDownloadUrlForSource("src-1")).toBe(
       "https://cached.ova",
+    );
+  });
+
+  it("delegates fetchAgentImageDownloadUrl to ImagesStore", async () => {
+    const { result } = renderHook(() => useEnvironmentPageViewModel());
+
+    await expect(
+      result.current.fetchAgentImageDownloadUrl("src-1"),
+    ).resolves.toBe("https://example.com/agent-update.tar");
+    expect(mockImagesStore.getAgentImageDownloadUrl).toHaveBeenCalledWith(
+      "src-1",
     );
   });
 

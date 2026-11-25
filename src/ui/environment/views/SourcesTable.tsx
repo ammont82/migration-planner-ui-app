@@ -4,6 +4,8 @@ import ColumnManagementModal, {
   type ColumnManagementModalColumn,
 } from "@patternfly/react-component-groups/dist/dynamic/ColumnManagementModal";
 import {
+  Alert,
+  AlertActionCloseButton,
   Button,
   Dropdown,
   DropdownItem,
@@ -60,6 +62,8 @@ import {
   sourceMatchesDiscoveryVmStatusFilter,
 } from "../helpers/discoveryVmStatus";
 import { normalizeDiscoveryApplianceVisibleColumns } from "../helpers/normalizeDiscoveryApplianceColumns";
+import { shouldOfferAgentImageDownload } from "../helpers/versionStatusLogic";
+import { useAgentImageDownload } from "../hooks/useAgentImageDownload";
 import { useEnvironmentPage } from "../view-models/EnvironmentPageContext";
 import { AgentStatusView } from "./AgentStatusView";
 import {
@@ -96,13 +100,17 @@ const getNetworksCount = (source: SourceModel): number =>
 const getDatastoresCount = (source: SourceModel): number =>
   source.inventory?.vcenter?.infra.datastores?.length ?? 0;
 
+const getVersionStatusInput = (source: SourceModel) => ({
+  displayStatus: source.displayStatus,
+  isUploadedManually: isSourceUploadedManually(source),
+  isConnected: source.isConnected,
+  agentVersion: source.agentVersion,
+  agentVersionWarning: source.agentVersionWarning,
+  applianceUpdateSupported: source.applianceUpdateSupported,
+});
+
 const getSourceAgentVersionLabel = (source: SourceModel): string =>
-  getAgentVersionDisplayLabel({
-    displayStatus: source.displayStatus,
-    isUploadedManually: isSourceUploadedManually(source),
-    agentVersion: source.agentVersion,
-    agentVersionWarning: source.agentVersionWarning,
-  });
+  getAgentVersionDisplayLabel(getVersionStatusInput(source));
 
 const tableContainerStyle = css`
   max-width: 100%;
@@ -139,6 +147,12 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
   onDownloadOva,
 }) => {
   const vm = useEnvironmentPage();
+  const {
+    downloadAgentImage,
+    isDownloading: isDownloadingAgentImage,
+    downloadError: agentImageDownloadError,
+    clearDownloadError,
+  } = useAgentImageDownload();
   const navigate = useNavigate();
   const [expandedSourceIds, setExpandedSourceIds] = useState<
     Record<string, boolean>
@@ -503,6 +517,10 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
 
   const showNoResultFound = hasSources && filteredSources.length === 0;
 
+  const handleDownloadAgentImage = (source: SourceModel): void => {
+    void downloadAgentImage(source.id, source.name);
+  };
+
   return (
     <div>
       {vm.assessmentFromAgentState && (
@@ -519,6 +537,16 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
           </Button>
         </div>
       )}
+
+      {agentImageDownloadError ? (
+        <Alert
+          variant="danger"
+          title={agentImageDownloadError}
+          isInline
+          actionClose={<AlertActionCloseButton onClose={clearDownloadError} />}
+          style={{ marginBottom: "1rem" }}
+        />
+      ) : null}
 
       <Toolbar
         clearAllFilters={clearAllFilters}
@@ -740,10 +768,21 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                       className={tableCellTop}
                     >
                       <VersionStatus
-                        displayStatus={source.displayStatus}
-                        isUploadedManually={isSourceUploadedManually(source)}
-                        agentVersion={source.agentVersion}
-                        agentVersionWarning={source.agentVersionWarning}
+                        {...getVersionStatusInput(source)}
+                        onDownloadAgentImage={
+                          shouldOfferAgentImageDownload(
+                            getVersionStatusInput(source),
+                          )
+                            ? () => handleDownloadAgentImage(source)
+                            : undefined
+                        }
+                        isDownloadingAgentImage={isDownloadingAgentImage}
+                        agentImageDownloadError={agentImageDownloadError}
+                        onGenerateNewOva={
+                          onAddEnvironment
+                            ? () => onAddEnvironment()
+                            : undefined
+                        }
                       />
                     </Td>
                   )}
@@ -862,6 +901,22 @@ export const SourcesTable: React.FC<SourceTableProps> = ({
                             >
                               Download OVA
                             </DropdownItem>
+                            {shouldOfferAgentImageDownload(
+                              getVersionStatusInput(source),
+                            ) ? (
+                              <DropdownItem
+                                isDisabled={isDownloadingAgentImage}
+                                onClick={() => {
+                                  setOpenDropdowns((prev) => ({
+                                    ...prev,
+                                    [source.id]: false,
+                                  }));
+                                  handleDownloadAgentImage(source);
+                                }}
+                              >
+                                Download agent image
+                              </DropdownItem>
+                            ) : null}
                             <DropdownItem
                               onClick={() => {
                                 setOpenDropdowns((prev) => ({
