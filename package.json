@@ -3,7 +3,7 @@
   "private": true,
   "engines": {
     "node": ">=20.20.2",
-    "npm": ">=11.21.2"
+    "npm": ">=11.21.3"
   },
   "scripts": {
     "build": "make build",
