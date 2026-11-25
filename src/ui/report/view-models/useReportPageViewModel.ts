@@ -48,6 +48,10 @@ import {
   type GroupViewModel,
 } from "../helpers/groupViewModel";
 import {
+  canExportAssessmentReport,
+  hasClusterResourcesForExport,
+} from "../helpers/reportExportEligibility";
+import {
   buildInventoryScopeCounts,
   buildViewingScopeCounts,
   formatReportScopeCounts,
@@ -664,13 +668,8 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
   );
 
   const hasClusterResources = useCallback(
-    (viewInfra?: Infra, viewVms?: VMs): boolean => {
-      const totalHosts = viewInfra?.totalHosts ?? 0;
-      const hostsCount = viewInfra?.hosts?.length ?? 0;
-      const hasHosts = totalHosts > 0 || hostsCount > 0;
-      const hasVms = (viewVms?.total ?? 0) > 0;
-      return hasHosts && hasVms;
-    },
+    (viewInfra?: Infra, viewVms?: VMs) =>
+      hasClusterResourcesForExport(viewInfra, viewVms),
     [],
   );
 
@@ -789,20 +788,25 @@ export const useReportPageViewModel = (): ReportPageViewModel => {
   const canUseRecommendationTools = (clusterView.viewVms?.total ?? 0) > 0;
 
   const canExportReport = useMemo((): boolean => {
-    if (hasClusterResources(clusterView.viewInfra, clusterView.viewVms)) {
-      return true;
+    const embeddedClusterMaps: Array<
+      Record<string, InventoryData> | undefined
+    > = [scopedRvtoolsSubsetInventory?.clusters];
+    if (rvtoolsSubsetInventories.length <= 1) {
+      embeddedClusterMaps.push(fullInventory?.clusters);
     }
-    if (!clusters) {
-      return false;
-    }
-    return Object.values(clusters).some((cluster) =>
-      hasClusterResources(cluster.infra, cluster.vms),
-    );
+    return canExportAssessmentReport({
+      viewInfra: clusterView.viewInfra,
+      viewVms: clusterView.viewVms,
+      scopedClusters: clusters,
+      embeddedClusterMaps,
+    });
   }, [
     clusterView.viewInfra,
     clusterView.viewVms,
     clusters,
-    hasClusterResources,
+    fullInventory?.clusters,
+    rvtoolsSubsetInventories.length,
+    scopedRvtoolsSubsetInventory?.clusters,
   ]);
 
   // ---- Last updated text ---------------------------------------------------

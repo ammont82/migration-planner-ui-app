@@ -5,13 +5,7 @@ import type {
 } from "@openshift-migration-advisor/planner-sdk";
 import { describe, expect, it } from "vitest";
 
-// Extract the logic from Report.tsx for testing
-const hasClusterResources = (viewInfra?: Infra, viewVms?: VMs): boolean => {
-  const hasHosts =
-    (viewInfra?.totalHosts ?? 0) > 0 || (viewInfra?.hosts?.length ?? 0) > 0;
-  const hasVms = (viewVms?.total ?? 0) > 0;
-  return hasHosts && hasVms;
-};
+import { hasClusterResourcesForExport as hasClusterResources } from "../../helpers/reportExportEligibility";
 
 describe("hasClusterResources", () => {
   it("returns true when cluster has both hosts and VMs", () => {
