@@ -95,7 +95,7 @@
     "picomatch": "4.0.7",
     "qs": "^6.17.1",
     "uuid": "^14.0.3",
-    "source-map-js": "^1.2.3",
+    "source-map-js": "^1.2.4",
     "shell-quote": "^1.12.0"
   },
   "insights": {
