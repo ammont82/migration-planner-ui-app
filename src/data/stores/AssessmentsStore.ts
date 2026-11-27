@@ -23,7 +23,6 @@ import {
   type AssessmentModel,
   createAssessmentModel,
 } from "../../models/AssessmentModel";
-import { getAssessmentDataCollectedMs } from "../../models/assessmentTimestamps";
 import {
   type CalculateCostEstimationRequest,
   type CostEstimationResponse,
@@ -64,9 +63,6 @@ export class AssessmentsStore
   private api: AssessmentApiInterface;
   private deletedAssessmentIds = new Set<string>();
   private hasLoadedAssessments = false;
-  /** LIST stubs omit collection_time; fetch detail once per assessment when needed. */
-  private collectionTimeEnrichmentRequested = new Set<string>();
-  private collectionTimeEnrichmentInFlight = false;
 
   constructor(api: AssessmentApiInterface) {
     super();
@@ -131,41 +127,7 @@ export class AssessmentsStore
     }
 
     this.notify();
-    this.requestCollectionTimeEnrichment();
     return this.assessments;
-  }
-
-  private requestCollectionTimeEnrichment(): void {
-    if (this.collectionTimeEnrichmentInFlight) {
-      return;
-    }
-
-    const missingCollectionTime = this.assessments.filter(
-      (assessment) =>
-        assessment.hasUsefulData &&
-        getAssessmentDataCollectedMs(assessment) === undefined &&
-        !this.collectionTimeEnrichmentRequested.has(assessment.id),
-    );
-
-    if (missingCollectionTime.length === 0) {
-      return;
-    }
-
-    this.collectionTimeEnrichmentInFlight = true;
-    void (async () => {
-      try {
-        for (const assessment of missingCollectionTime) {
-          this.collectionTimeEnrichmentRequested.add(assessment.id);
-          try {
-            await this.get(assessment.id);
-          } catch {
-            this.collectionTimeEnrichmentRequested.delete(assessment.id);
-          }
-        }
-      } finally {
-        this.collectionTimeEnrichmentInFlight = false;
-      }
-    })();
   }
 
   getById(id: string): AssessmentModel | undefined {
